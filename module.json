@@ -1,0 +1,42 @@
+{
+  "id": "pf2e-party-sheet-helper",
+  "title": "PF2e Party Sheet Helper",
+  "description": "PF2e Party Sheet Helper - add rollable skills",
+  "version": "0.0.1",
+  "authors": [
+    {
+      "name": "Reyzor",
+      "url": "https://github.com/reyzor1991",
+      "discord": "reyzor1991"
+    }
+  ],
+  "languages": [],
+  "esmodules": [
+    "pf2e-party-sheet-helper.js"
+  ],
+  "styles": [
+  ],
+  "packFolders": [],
+  "packs": [],
+  "media": [],
+  "compatibility": {
+    "minimum": "11",
+    "verified": "11.308"
+  },
+  "manifest": "https://drive.usercontent.google.com/download?id=1xlW_ZFhviU06ImDf7o07ar72pBpX60OH",
+  "download": "https://drive.usercontent.google.com/download?id=113dfClzG0XqEpKqig0rrYPZxjoxUVw50",
+  "relationships": {
+    "systems": [
+      {
+        "id": "pf2e",
+        "type": "system",
+        "manifest": "https://github.com/foundryvtt/pf2e/releases/latest/download/system.json",
+        "compatibility": {
+          "minimum": "5.4.0",
+          "verified": "5.4.0"
+        }
+      }
+    ],
+    "requires": []
+  }
+}
