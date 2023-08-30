@@ -1,5 +1,12 @@
 const moduleName = "pf2e-party-sheet-helper";
 
+const gradient = [
+    [0,  [255,0,0]],
+    [50, [204,204,0]],
+    [100,[0,128,0]],
+];
+const sliderWidth = 500;
+
 function healthStatuses() {
     const list = game.settings.get(moduleName, "healthStatus").split(',').map(a=>a.trim());
     if (list.length >= 2) {
@@ -14,8 +21,44 @@ function healthStatuses() {
     return [];
 };
 
+function calculateColor(percent) {
+    if (percent === 0) return gradient[0][1];
+
+    let colorRange = []
+    for (let i = 0; i < gradient.length; i++) {
+        if (percent<=gradient[i][0]) {
+            colorRange = [i-1, i]
+            break;
+        }
+    }
+
+    //Get the two closest colors
+    const firstcolor = gradient[colorRange[0]][1];
+    const secondcolor = gradient[colorRange[1]][1];
+
+
+    //Calculate ratio between the two closest colors
+    const firstcolor_x = sliderWidth*(gradient[colorRange[0]][0]/100);
+    const secondcolor_x = sliderWidth*(gradient[colorRange[1]][0]/100)-firstcolor_x;
+
+    const slider_x = sliderWidth*(percent/100)-firstcolor_x;
+    const ratio = slider_x/secondcolor_x
+
+    return pickHex( secondcolor,firstcolor, ratio );
+}
+
+function pickHex(color1, color2, weight) {
+    var w1 = weight;
+    var w2 = 1 - w1;
+    var rgb = [Math.round(color1[0] * w1 + color2[0] * w2),
+        Math.round(color1[1] * w1 + color2[1] * w2),
+        Math.round(color1[2] * w1 + color2[2] * w2)];
+    return rgb;
+}
+
 function healthEstimateForActor(actor, html, statuses) {
     const percent = (actor.system.attributes.hp.value / actor.system.attributes.hp.max) * 100;
+    let color = calculateColor(percent);
     let label = '?';
     if (percent === 0 ) {
         label = statuses[0].label
@@ -23,10 +66,16 @@ function healthEstimateForActor(actor, html, statuses) {
         label = statuses[statuses.length-1].label
     } else {
         label = statuses.find((e) => percent <= e.percent).label;
-    }
+    };
 
-    html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar span').text(`${label}`);
-    html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.health-bar span').text(`${label}`);
+    const overHpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar');
+    overHpBar.find('span').text(`${label}`);
+    overHpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
+
+    const expHpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.health-bar');
+    expHpBar.find('span').text(`${label}`);
+    expHpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
+
 };
 
 Hooks.on('init', function(partySheet, html, data) {
