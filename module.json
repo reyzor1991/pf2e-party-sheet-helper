@@ -1,8 +1,8 @@
 {
   "id": "pf2e-party-sheet-helper",
   "title": "PF2e Party Sheet Helper",
-  "description": "PF2e Party Sheet Helper - add rollable skills",
-  "version": "0.0.1",
+  "description": "PF2e Party Sheet Helper",
+  "version": "0.0.2",
   "authors": [
     {
       "name": "Reyzor",
