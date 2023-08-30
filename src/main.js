@@ -77,5 +77,18 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
                 healthEstimateForActor(actor, html, statuses);
             });
         }
-    }
+    };
+
+    const encumbranceHtml = `<div class="encumbrance">
+        <img src="systems/pf2e/icons/equipment/adventuring-gear/backpack.webp" alt="Encumbrance">
+        <span class="encumbrance-bar" style="width:100%"></span>
+        <div class="encumbrance-label">
+            <span>Carried Bulk: ${partySheet.actor.inventory.bulk.value.normal}, ${partySheet.actor.inventory.bulk.value.light}L</span>
+        </div>
+        <span class="bar-bg"></span>
+    </div>`
+
+
+    html.find(`div[data-tab="inventory"]`).find(`.inventory`).append(encumbranceHtml);
+
 });

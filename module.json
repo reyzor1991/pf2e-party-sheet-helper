@@ -2,7 +2,7 @@
   "id": "pf2e-party-sheet-helper",
   "title": "PF2e Party Sheet Helper",
   "description": "PF2e Party Sheet Helper",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "authors": [
     {
       "name": "Reyzor",
@@ -15,6 +15,7 @@
     "pf2e-party-sheet-helper.js"
   ],
   "styles": [
+    "pf2e-party-sheet-helper.css"
   ],
   "packFolders": [],
   "packs": [],
