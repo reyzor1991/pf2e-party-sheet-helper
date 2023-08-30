@@ -16,7 +16,14 @@ function healthStatuses() {
 
 function healthEstimateForActor(actor, html, statuses) {
     const percent = (actor.system.attributes.hp.value / actor.system.attributes.hp.max) * 100;
-    const label = statuses.findLast((e) => percent >= e.percent).label;
+    let label = '?';
+    if (percent === 0 ) {
+        label = statuses[0].label
+    } else if (percent === 100 ) {
+        label = statuses[statuses.length-1].label
+    } else {
+        label = statuses.find((e) => percent <= e.percent).label;
+    }
 
     html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar span').text(`${label}`);
     html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.health-bar span').text(`${label}`);
