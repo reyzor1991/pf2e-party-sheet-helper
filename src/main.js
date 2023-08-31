@@ -6,6 +6,19 @@ const gradient = [
     [100,[0,128,0]],
 ];
 const sliderWidth = 500;
+let canvasDistance = 100;
+
+
+const clownCarCoords = [
+    {x: 0, y: -1},
+    {x: 0, y: 1},
+    {x: -1, y: 0},
+    {x: 1, y: 0},
+    {x: -1, y: -1},
+    {x: 1, y: -1},
+    {x: -1, y: 1},
+    {x: 1, y: 1},
+]
 
 function healthStatuses() {
     const list = game.settings.get(moduleName, "healthStatus").split(',').map(a=>a.trim());
@@ -93,6 +106,77 @@ Hooks.on('init', function(partySheet, html, data) {
         default: false,
         type: Boolean,
     });
+    game.settings.register(moduleName, "useCircleClownCar", {
+        name: "When deposit PC Tokens - use circle method",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+
+    canvasDistance = canvas.dimensions?.size ?? 100
+});
+
+Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
+    if (!game.settings.get(moduleName, "useCircleClownCar")) return;
+    const token = canvas.scene?.tokens.get(data._id ?? "")?.object;
+    if (!token?.actor?.isOfType("party")) return;
+
+    const clownCar = html.find('.control-icon[data-action="clown-car"]');
+    if (clownCar.length === 0) {return};
+    if (clownCar.attr('class').split(' ').includes('psh')) return;
+
+    const { actor, scene } = token;
+    const el = (()  => {
+        const imgElement = document.createElement("img");
+        imgElement.src = "systems/pf2e/icons/other/enter-exit.svg";
+        const willRetrieve = actor.members.some((m) => m.getActiveTokens(true, true).length > 0);
+        imgElement.className = willRetrieve ? "retrieve" : "deposit";
+        imgElement.title = game.i18n.localize(
+            willRetrieve ? "PF2E.Actor.Party.ClownCar.Retrieve" : "PF2E.Actor.Party.ClownCar.Deposit"
+        );
+
+        return imgElement;
+    })();
+
+    const newDiv = document.createElement("div");
+    newDiv.classList.add('control-icon', 'psh');
+    newDiv.setAttribute('data-action', "clown-car");
+    newDiv.appendChild(el);
+
+    newDiv.addEventListener("click", async () => {
+        const memberTokensIds = new Set(
+            actor.members.flatMap((m) => m.getActiveTokens(true, true)).map((t) => t.id)
+        );
+        if (memberTokensIds.size === 0) {
+            const newTokens = await Promise.all(
+                actor.members.slice(0,8).map((m, index) =>
+                    m.getTokenDocument({
+                        x: token.document.x + (clownCarCoords[index].x) * canvasDistance,
+                        y: token.document.y + (clownCarCoords[index].y) * canvasDistance,
+                    })
+                )
+            )
+            if (actor.members.length > 8) {
+                newTokens.push(...(
+                    await Promise.all(
+                        actor.members.slice(8).map((m, index) =>
+                            m.getTokenDocument({
+                                x: token.document.x + (index + 2) * canvasDistance,
+                                y: token.document.y,
+                            })
+                        )
+                    )
+                ).map((t) => t.toObject()));
+            }
+            await scene.createEmbeddedDocuments("Token", newTokens);
+        } else {
+            await scene.deleteEmbeddedDocuments("Token", [...memberTokensIds]);
+        }
+        canvas.tokens.hud.render();
+    });
+
+    clownCar.replaceWith(newDiv);
 });
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
