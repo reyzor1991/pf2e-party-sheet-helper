@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.0.7
+
+### New feature
+- When deposit PC Tokens from Party Token - use z-Scatter
+
 ## Version 0.0.6
 
 ### New feature

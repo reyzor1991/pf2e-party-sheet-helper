@@ -149,27 +149,39 @@ Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
             actor.members.flatMap((m) => m.getActiveTokens(true, true)).map((t) => t.id)
         );
         if (memberTokensIds.size === 0) {
-            const newTokens = await Promise.all(
-                actor.members.slice(0,8).map((m, index) =>
-                    m.getTokenDocument({
-                        x: token.document.x + (clownCarCoords[index].x) * canvasDistance,
-                        y: token.document.y + (clownCarCoords[index].y) * canvasDistance,
-                    })
-                )
-            )
-            if (actor.members.length > 8) {
-                newTokens.push(...(
-                    await Promise.all(
-                        actor.members.slice(8).map((m, index) =>
-                            m.getTokenDocument({
-                                x: token.document.x + (index + 2) * canvasDistance,
-                                y: token.document.y,
-                            })
-                        )
+            if (game.settings.settings.has('z-scatter.snapTokens') && game.settings.get('z-scatter', 'snapTokens')) {
+                const newTokens = await Promise.all(
+                    actor.members.map((m, index) =>
+                        m.getTokenDocument({
+                            x: token.document.x,
+                            y: token.document.y,
+                        })
                     )
-                ).map((t) => t.toObject()));
+                )
+                await scene.createEmbeddedDocuments("Token", newTokens);
+            } else {
+                const newTokens = await Promise.all(
+                    actor.members.slice(0,8).map((m, index) =>
+                        m.getTokenDocument({
+                            x: token.document.x + (clownCarCoords[index].x) * canvasDistance,
+                            y: token.document.y + (clownCarCoords[index].y) * canvasDistance,
+                        })
+                    )
+                )
+                if (actor.members.length > 8) {
+                    newTokens.push(...(
+                        await Promise.all(
+                            actor.members.slice(8).map((m, index) =>
+                                m.getTokenDocument({
+                                    x: token.document.x + (index + 2) * canvasDistance,
+                                    y: token.document.y,
+                                })
+                            )
+                        )
+                    ).map((t) => t.toObject()));
+                }
+                await scene.createEmbeddedDocuments("Token", newTokens);
             }
-            await scene.createEmbeddedDocuments("Token", newTokens);
         } else {
             await scene.deleteEmbeddedDocuments("Token", [...memberTokensIds]);
         }

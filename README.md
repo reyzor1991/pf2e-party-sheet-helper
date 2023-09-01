@@ -3,4 +3,4 @@
 - Secrets roll template
 - Health Estimate(Label, color)
 - Party Sheet Encumbrance
-- Circle method for depositing PC Tokens
+- Circle/Z-Scatter method for depositing PC Tokens
