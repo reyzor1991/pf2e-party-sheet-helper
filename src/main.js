@@ -194,6 +194,7 @@ Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
     html.find('.skills > .tag-light.tooltipstered').click(async (event) => {
         const skill = $(event.currentTarget).data().slug;
+        const isSecret = event.shiftKey;
 
         const { dc } = await Dialog.wait({
             title:"DC of skill",
@@ -218,7 +219,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
 
         ChatMessage.create({
             type: CONST.CHAT_MESSAGE_TYPES.OOC,
-            content: `@Check[type:${skill}|dc:${dc}|traits:secret]{${skill.capitalize()} Check}`
+            content: `@Check[type:${skill}|dc:${dc}${isSecret?'|traits:secret':''}]{${skill.capitalize()} Check}`
         });
     });
 

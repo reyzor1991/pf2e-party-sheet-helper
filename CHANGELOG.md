@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.0.8
+
+### New feature
+- Secret Skill template when click shift
+
 ## Version 0.0.7
 
 ### New feature
