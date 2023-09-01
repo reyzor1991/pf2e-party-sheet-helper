@@ -1,0 +1,13 @@
+<form id="drop-folder" onsubmit="event.preventDefault();">
+    <div class="form-group">
+        <label>Drop method</label>
+        <div class="form-fields">
+            <select name="drop-list">
+                {{#each choices as |v k|}}
+                    <option value="{{k}}">{{v}}</option>
+                {{/each}}
+            </select>
+            </select>
+        </div>
+    </div>
+</form>

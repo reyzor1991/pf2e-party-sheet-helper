@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.0.9
+
+### New feature
+- Prompt window for choice drop method
+- Check wall collision
+
 ## Version 0.0.8
 
 ### New feature

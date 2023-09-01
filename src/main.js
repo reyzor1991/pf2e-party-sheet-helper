@@ -149,47 +149,128 @@ Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
             actor.members.flatMap((m) => m.getActiveTokens(true, true)).map((t) => t.id)
         );
         if (memberTokensIds.size === 0) {
-            if (game.settings.settings.has('z-scatter.snapTokens') && game.settings.get('z-scatter', 'snapTokens')) {
-                const newTokens = await Promise.all(
-                    actor.members.map((m, index) =>
-                        m.getTokenDocument({
-                            x: token.document.x,
-                            y: token.document.y,
-                        })
-                    )
-                )
-                await scene.createEmbeddedDocuments("Token", newTokens);
-            } else {
-                const newTokens = await Promise.all(
-                    actor.members.slice(0,8).map((m, index) =>
-                        m.getTokenDocument({
-                            x: token.document.x + (clownCarCoords[index].x) * canvasDistance,
-                            y: token.document.y + (clownCarCoords[index].y) * canvasDistance,
-                        })
-                    )
-                )
-                if (actor.members.length > 8) {
-                    newTokens.push(...(
-                        await Promise.all(
-                            actor.members.slice(8).map((m, index) =>
-                                m.getTokenDocument({
-                                    x: token.document.x + (index + 2) * canvasDistance,
-                                    y: token.document.y,
-                                })
-                            )
-                        )
-                    ).map((t) => t.toObject()));
-                }
-                await scene.createEmbeddedDocuments("Token", newTokens);
-            }
+
+            const choices = {};
+            addChoices(token, actor, choices);
+
+            const content = await renderTemplate("./modules/pf2e-party-sheet-helper/templates/clown-car-choise.hbs", {choices});
+            new Dialog({
+                title: "Choice method of deposit PCs",
+                content,
+                buttons: {
+                    ok: {
+                        label: "<span class='pf2-icon'>1</span> Drop",
+                        callback: async (html) => {
+                            const value = html.find('select[name="drop-list"]').val();
+                            if (value === 'zScatter') {
+                                zScatterDepositTokens(token, actor, scene);
+                            } else if (value === 'circle') {
+                                circleDepositTokens(token, actor, scene);
+                            } else if (value === 'origin') {
+                                originDepositTokens(token, actor, scene);
+                            }
+                        }
+                    }
+                },
+            }).render(true);
         } else {
             await scene.deleteEmbeddedDocuments("Token", [...memberTokensIds]);
+            canvas.tokens.hud.render();
         }
-        canvas.tokens.hud.render();
     });
 
     clownCar.replaceWith(newDiv);
 });
+
+function addChoices(token, actor, choices) {
+    if (game.settings.settings.has('z-scatter.snapTokens') && game.settings.get('z-scatter', 'snapTokens')) {
+        choices['zScatter'] = 'Z-Scatter Method'
+    }
+
+    const coods = actor.members.slice(0,8).map((m, index) => {return{
+        x: token.center.x + (clownCarCoords[index].x) * canvasDistance,
+        y: token.center.y + (clownCarCoords[index].y) * canvasDistance,
+    }});
+    if (actor.members.length > 8) {
+        coods.push(...actor.members.slice(8).map((m, index) => {return{
+            x: token.center.x + (index + 2) * canvasDistance,
+            y: token.center.y,
+        }}));
+    }
+    const hasCollision = coods.some(c=> {
+        return CONFIG.Canvas.polygonBackends.move.testCollision(token.center, c, { type: 'move', mode: 'any' });
+    });
+    if (!hasCollision) {
+        choices['circle'] = 'Circle Method';
+    }
+
+    const originCoors = actor.members.map((m, index) => {return{
+        x: token.center.x + (index + 1) * canvasDistance,
+        y: token.center.y,
+    }});
+    const originCollision = originCoors.some(c=> {
+        return CONFIG.Canvas.polygonBackends.move.testCollision(token.center, c, { type: 'move', mode: 'any' });
+    });
+    if (!originCollision) {
+        choices['origin'] = 'Origin Method';
+    }
+}
+
+async function originDepositTokens(token, actor, scene) {
+    const newTokens = (
+        await Promise.all(
+            actor.members.map((m, index) =>
+                m.getTokenDocument({
+                    x: token.document.x + (index + 1) * canvasDistance,
+                    y: token.document.y,
+                })
+            )
+        )
+    ).map((t) => t.toObject());
+    await scene.createEmbeddedDocuments("Token", newTokens);
+
+    canvas.tokens.hud.render();
+}
+
+async function circleDepositTokens(token, actor, scene) {
+    const newTokens = (await Promise.all(
+        actor.members.slice(0,8).map((m, index) =>
+            m.getTokenDocument({
+                x: token.document.x + (clownCarCoords[index].x) * canvasDistance,
+                y: token.document.y + (clownCarCoords[index].y) * canvasDistance,
+            })
+        )
+    )).map((t) => t.toObject());
+    if (actor.members.length > 8) {
+        newTokens.push(...(
+            await Promise.all(
+                actor.members.slice(8).map((m, index) =>
+                    m.getTokenDocument({
+                        x: token.document.x + (index + 2) * canvasDistance,
+                        y: token.document.y,
+                    })
+                )
+            )
+        ).map((t) => t.toObject()));
+    }
+    await scene.createEmbeddedDocuments("Token", newTokens);
+
+    canvas.tokens.hud.render();
+}
+
+async function zScatterDepositTokens(token, actor, scene) {
+    const newTokens = (await Promise.all(
+        actor.members.map((m, index) =>
+            m.getTokenDocument({
+                x: token.document.x,
+                y: token.document.y,
+            })
+        )
+    )).map((t) => t.toObject());
+
+    await scene.createEmbeddedDocuments("Token", newTokens);
+    canvas.tokens.hud.render();
+}
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
     html.find('.skills > .tag-light.tooltipstered').click(async (event) => {
