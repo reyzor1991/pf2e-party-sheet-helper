@@ -4,6 +4,7 @@
 
 ### New feature
 - Upgrade circle method
+- Add free space method
 
 ## Version 0.0.9
 

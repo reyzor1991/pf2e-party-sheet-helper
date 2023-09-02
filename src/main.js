@@ -8,7 +8,6 @@ const gradient = [
 const sliderWidth = 500;
 let canvasDistance = 100;
 
-
 const clownCarCoords = [
     {x: 0, y: -1},
     {x: 0, y: 1},
@@ -182,6 +181,8 @@ Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
                                 zScatterDepositTokens(token, actor, scene);
                             } else if (value === 'circle') {
                                 circleDepositTokens(token, actor, scene);
+                            } else if (value === 'freeSpace') {
+                                freeSpaceDepositTokens(token, actor, scene);
                             } else if (value === 'origin') {
                                 originDepositTokens(token, actor, scene);
                             }
@@ -218,6 +219,17 @@ function addChoices(token, actor, choices) {
     });
     if (!hasCollision) {
         choices['circle'] = 'Circle Method';
+    }
+
+    if (actor.members.length <= 24) {
+        const freeSpace =  clownCarCoords.map((m, index) => {return{
+            x: token.center.x + (clownCarCoords[index].x) * canvasDistance,
+            y: token.center.y + (clownCarCoords[index].y) * canvasDistance,
+        }}).filter(c=>!CONFIG.Canvas.polygonBackends.move.testCollision(token.center, c, { type: 'move', mode: 'any' }))
+        console.log(freeSpace);
+        if (freeSpace.length >= actor.members.length) {
+            choices['freeSpace'] = 'Free Space';
+        }
     }
 
     const originCoors = actor.members.map((m, index) => {return{
@@ -269,6 +281,22 @@ async function circleDepositTokens(token, actor, scene) {
             )
         ).map((t) => t.toObject()));
     }
+    await scene.createEmbeddedDocuments("Token", newTokens);
+
+    canvas.tokens.hud.render();
+}
+
+async function freeSpaceDepositTokens(token, actor, scene) {
+    const coods = clownCarCoords.map((m, index) => {return{
+        x: token.center.x + (clownCarCoords[index].x) * canvasDistance,
+        y: token.center.y + (clownCarCoords[index].y) * canvasDistance,
+    }}).filter(c=>!CONFIG.Canvas.polygonBackends.move.testCollision(token.center, c, { type: 'move', mode: 'any' }))
+    .map(a=>{ return {x: a.x - canvasDistance/2, y: a.y - canvasDistance/2} });
+
+    const newTokens = (await Promise.all(
+        actor.members.map((m, index) => m.getTokenDocument(coods[index]))
+    )).map((t) => t.toObject());
+
     await scene.createEmbeddedDocuments("Token", newTokens);
 
     canvas.tokens.hud.render();
