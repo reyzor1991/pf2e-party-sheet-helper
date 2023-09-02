@@ -18,6 +18,22 @@ const clownCarCoords = [
     {x: 1, y: -1},
     {x: -1, y: 1},
     {x: 1, y: 1},
+    {x: 0, y: -2},
+    {x: 0, y: 2},
+    {x: -2, y: 0},
+    {x: 2, y: 0},
+    {x: -1, y: -2},
+    {x: 1, y: -2},
+    {x: -1, y: 2},
+    {x: 1, y: 2},
+    {x: -2, y: -1},
+    {x: 2, y: -1},
+    {x: -2, y: 1},
+    {x: 2, y: 1},
+    {x: -2, y: -2},
+    {x: 2, y: -2},
+    {x: -2, y: 2},
+    {x: 2, y: 2},
 ]
 
 function healthStatuses() {
@@ -187,13 +203,13 @@ function addChoices(token, actor, choices) {
         choices['zScatter'] = 'Z-Scatter Method'
     }
 
-    const coods = actor.members.slice(0,8).map((m, index) => {return{
+    const coods = actor.members.slice(0,24).map((m, index) => {return{
         x: token.center.x + (clownCarCoords[index].x) * canvasDistance,
         y: token.center.y + (clownCarCoords[index].y) * canvasDistance,
     }});
-    if (actor.members.length > 8) {
-        coods.push(...actor.members.slice(8).map((m, index) => {return{
-            x: token.center.x + (index + 2) * canvasDistance,
+    if (actor.members.length > 24) {
+        coods.push(...actor.members.slice(24).map((m, index) => {return{
+            x: token.center.x + (index + 3) * canvasDistance,
             y: token.center.y,
         }}));
     }
@@ -234,19 +250,19 @@ async function originDepositTokens(token, actor, scene) {
 
 async function circleDepositTokens(token, actor, scene) {
     const newTokens = (await Promise.all(
-        actor.members.slice(0,8).map((m, index) =>
+        actor.members.slice(0,24).map((m, index) =>
             m.getTokenDocument({
                 x: token.document.x + (clownCarCoords[index].x) * canvasDistance,
                 y: token.document.y + (clownCarCoords[index].y) * canvasDistance,
             })
         )
     )).map((t) => t.toObject());
-    if (actor.members.length > 8) {
+    if (actor.members.length > 24) {
         newTokens.push(...(
             await Promise.all(
-                actor.members.slice(8).map((m, index) =>
+                actor.members.slice(24).map((m, index) =>
                     m.getTokenDocument({
-                        x: token.document.x + (index + 2) * canvasDistance,
+                        x: token.document.x + (index + 3) * canvasDistance,
                         y: token.document.y,
                     })
                 )
