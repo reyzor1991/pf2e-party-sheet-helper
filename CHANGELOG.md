@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.0.11
+
+- Delete encumbrance
+- Delete deposit PC Tokens
+
 ## Version 0.0.10
 
 ### New feature
