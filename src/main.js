@@ -10,11 +10,12 @@ const sliderWidth = 500;
 function healthStatuses() {
     const list = game.settings.get(moduleName, "healthStatus").split(',').map(a=>a.trim());
     if (list.length >= 2) {
-        const perStage = Math.round(10000/(list.length-1))/100;
-        const stages = list.map((el, idx) => {
-            return {label: el, percent: idx*perStage};
-        });
-        stages[stages.length-1].percent = 100;
+        const perStage = Math.round(10000/(list.length-2))/100;
+        const stages = [{label: list[0], percent: {from: 0, to: 0}}]
+        stages.push(...list.slice(1, -1).map((el, idx) => {
+            return {label: el, percent: {from: idx*perStage, to: (idx+1)*perStage}};
+        }));
+        stages.push({label: list[list.length-1], percent: {from: 100, to: 100}})
         return stages;
     }
 
@@ -65,7 +66,7 @@ function healthEstimateForActor(actor, html, statuses) {
     } else if (percent === 100 ) {
         label = statuses[statuses.length-1].label
     } else {
-        label = statuses.find((e) => percent <= e.percent).label;
+        label = statuses.find((e) => percent <= e.percent.to && percent>= e.percent.from)?.label ?? 'Undefined';
     };
 
     const overHpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar');
@@ -92,12 +93,105 @@ Hooks.on('init', function(partySheet, html, data) {
         default: false,
         type: Boolean,
     });
+    game.settings.register(moduleName, "useCircleClownCar", {
+        name: "When deposit PC Tokens - use circle method",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
 });
+
+Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
+    if (!game.settings.get(moduleName, "useCircleClownCar")) return;
+    const token = canvas.scene?.tokens.get(data._id ?? "")?.object;
+    if (!token?.actor?.isOfType("party")) return;
+
+    const clownCar = html.find('.control-icon[data-action="clown-car"]');
+    if (clownCar.length === 0) {return};
+    clownCar.addClass("hidden");
+
+    const { actor, scene } = token;
+    const el = (()  => {
+        const imgElement = document.createElement("img");
+        imgElement.src = "systems/pf2e/icons/other/enter-exit.svg";
+        const willRetrieve = actor.members.some((m) => m.getActiveTokens(true, true).length > 0);
+        imgElement.className = willRetrieve ? "retrieve" : "deposit";
+        imgElement.title = game.i18n.localize(
+            willRetrieve ? "PF2E.Actor.Party.ClownCar.Retrieve" : "PF2E.Actor.Party.ClownCar.Deposit"
+        );
+
+        return imgElement;
+    })();
+
+    const newDiv = document.createElement("div");
+    newDiv.classList.add('control-icon', 'psh');
+    newDiv.setAttribute('data-action', "clown-car");
+    newDiv.appendChild(el);
+
+    newDiv.addEventListener("click", async () => {
+        const memberTokensIds = new Set(
+            actor.members.flatMap((m) => m.getActiveTokens(true, true)).map((t) => t.id)
+        );
+        if (memberTokensIds.size === 0) {
+
+            let onlyOrigin = true;
+            const choices = {'origin': 'Origin Method'};
+            if (game.settings.settings.has('z-scatter.snapTokens') && game.settings.get('z-scatter', 'snapTokens')) {
+                choices['zScatter'] = 'Z-Scatter Method';
+                onlyOrigin = false;
+            }
+
+            if (onlyOrigin) {
+                clownCar.click();
+                return;
+            }
+            const content = await renderTemplate("./modules/pf2e-party-sheet-helper/templates/clown-car-choise.hbs", {choices});
+            new Dialog({
+                title: "Choice method of deposit PCs",
+                content,
+                buttons: {
+                    ok: {
+                        label: "<span class='pf2-icon'>1</span> Drop",
+                        callback: async (html) => {
+                            const value = html.find('select[name="drop-list"]').val();
+                            if (value === 'zScatter') {
+                                zScatterDepositTokens(token, actor, scene);
+                            } else if (value === 'origin') {
+                                clownCar.click();
+                                canvas.tokens.hud.render();
+                            }
+                        }
+                    }
+                },
+            }).render(true);
+        } else {
+            await scene.deleteEmbeddedDocuments("Token", [...memberTokensIds]);
+            canvas.tokens.hud.render();
+        }
+    });
+
+    $( newDiv ).insertBefore( clownCar );
+})
+
+async function zScatterDepositTokens(token, actor, scene) {
+    const newTokens = (await Promise.all(
+        actor.members.map((m, index) =>
+            m.getTokenDocument({
+                x: token.document.x,
+                y: token.document.y,
+            })
+        )
+    )).map((t) => t.toObject());
+
+    await scene.createEmbeddedDocuments("Token", newTokens);
+    canvas.tokens.hud.render();
+}
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
     html.find('.skills > .tag-light.tooltipstered').click(async (event) => {
         const skill = $(event.currentTarget).data().slug;
-        const isSecret = event.shiftKey;
+        const isSecret = (event.ctrlKey || event.metaKey);
 
         const { dc } = await Dialog.wait({
             title:"DC of skill",
@@ -120,10 +214,17 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
         });
         if (dc === undefined) { return; }
 
-        ChatMessage.create({
-            type: CONST.CHAT_MESSAGE_TYPES.OOC,
-            content: `@Check[type:${skill}|dc:${dc}${isSecret?'|traits:secret':''}]{${skill.capitalize()} Check}`
-        });
+
+        if (event.shiftKey) {
+            navigator.clipboard.writeText(`@Check[type:${skill}|dc:${dc}${isSecret?'|traits:secret':''}]{${skill.capitalize()} Check}`);
+            ui.notifications.info("Copied the text of check");
+        } else {
+            ChatMessage.create({
+                type: CONST.CHAT_MESSAGE_TYPES.OOC,
+                content: `@Check[type:${skill}|dc:${dc}${isSecret?'|traits:secret':''}]{${skill.capitalize()} Check}`
+            });
+        }
+
     });
 
     if (game.settings.get(moduleName, "useHealthStatus")) {

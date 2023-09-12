@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.0.12
+
+- Return z-Scatter
+- Change logic creating of checks (secret if Meta/Ctrl) (copy check if Shift)
+- Health Estimate fix
+
 ## Version 0.0.11
 
 - Delete encumbrance
