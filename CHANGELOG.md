@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.0.13
+
+- DC based on average lvl of party
+
 ## Version 0.0.12
 
 - Return z-Scatter

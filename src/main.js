@@ -1,5 +1,35 @@
 const moduleName = "pf2e-party-sheet-helper";
 
+const dcByLevel = new Map([
+    [-1, 13],
+    [0, 14],
+    [1, 15],
+    [2, 16],
+    [3, 18],
+    [4, 19],
+    [5, 20],
+    [6, 22],
+    [7, 23],
+    [8, 24],
+    [9, 26],
+    [10, 27],
+    [11, 28],
+    [12, 30],
+    [13, 31],
+    [14, 32],
+    [15, 34],
+    [16, 35],
+    [17, 36],
+    [18, 38],
+    [19, 39],
+    [20, 40],
+    [21, 42],
+    [22, 44],
+    [23, 46],
+    [24, 48],
+    [25, 50],
+]);
+
 const gradient = [
     [0,  [255,0,0]],
     [50, [204,204,0]],
@@ -189,6 +219,9 @@ async function zScatterDepositTokens(token, actor, scene) {
 }
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
+    const levels = partySheet.actor.members.map(a=>a.level)
+    const defDC = (dcByLevel.get(Math.round(levels.reduce((a, b) => a + b, 0)/levels.length)) ?? 50);
+
     html.find('.skills > .tag-light.tooltipstered').click(async (event) => {
         const skill = $(event.currentTarget).data().slug;
         const isSecret = (event.ctrlKey || event.metaKey);
@@ -197,7 +230,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
             title:"DC of skill",
             content: `
                 <h3>DC of check</h3>
-                <input id="skill-dc" type="number" min="0" value=10 />
+                <input id="skill-dc" type="number" min="0" value=${defDC} />
             `,
             buttons: {
                     ok: {
