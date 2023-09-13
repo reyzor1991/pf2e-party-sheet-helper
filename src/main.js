@@ -130,6 +130,13 @@ Hooks.on('init', function(partySheet, html, data) {
         default: false,
         type: Boolean,
     });
+    game.settings.register(moduleName, "hideWealthFromPC", {
+        name: "Hide Wealth from PCs",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
 });
 
 Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
@@ -268,5 +275,11 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
             });
         }
     };
+
+    if (game.settings.get(moduleName, "hideWealthFromPC") && !game.user.isGM) {
+        html.find('.inventory-members').find('.sub-data > .value').addClass("hidden");
+
+        $(html.find('.inventory-members').find('.summary-data').children()[1]).css({ display: "none" })
+    }
 
 });
