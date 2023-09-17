@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.0.15
+
+- Button for create encounter for party
+
 ## Version 0.0.14
 
 - Hide Wealth from PCs

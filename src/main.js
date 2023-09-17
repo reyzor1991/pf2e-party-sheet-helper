@@ -225,6 +225,30 @@ async function zScatterDepositTokens(token, actor, scene) {
     canvas.tokens.hud.render();
 }
 
+Hooks.on('renderSidebarTab', function(tab, html, data) {
+    if (tab.id != 'actors') {return;}
+
+    const header = html.find('.directory-list').find('.party-list').find('header');
+    const party = game.actors.get(header.data().documentId)
+    const row = header.find('.noborder');
+    if (row.find('.create-combat').length === 0) {
+        const newBtn = `<a class="create-combat left-control" data-tooltip="Create Combat"><i class="fas fa-swords"></i></a>`;
+        $( newBtn ).insertBefore( row.find('span') );
+
+        $(row.find('.create-combat')).on("click", async function(el) {
+            if (game.combat) {ui.notifications.info("Combat already exists");return}
+
+            await Combat.create({scene: canvas.scene.id, active: true});
+            const tokens = party.members.map(m=>m.getActiveTokens(true, true)).flat();
+            if (tokens.length > 0) {
+                await game.combat.createEmbeddedDocuments( "Combatant", tokens.map(t=>{return {tokenId: t.id} } ))
+
+                ui.notifications.info("Combat was created");
+            }
+        });
+    }
+})
+
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
     const levels = partySheet.actor.members.map(a=>a.level)
     const defDC = (dcByLevel.get(Math.round(levels.reduce((a, b) => a + b, 0)/levels.length)) ?? 50);
