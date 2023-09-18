@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.0.17
+
+- Easy Version of Travel Duration Calculator 
+
 ## Version 0.0.16
 
 - Button to call Travel Duration Calculator 

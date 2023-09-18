@@ -30,6 +30,12 @@ const dcByLevel = new Map([
     [25, 50],
 ]);
 
+const golarionMileInFeet = 6000;
+
+// general constants
+const minutesPerDay = 24 * 60;
+const minutesPerWeek = minutesPerDay * 7;
+
 const gradient = [
     [0,  [255,0,0]],
     [50, [204,204,0]],
@@ -308,7 +314,8 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
     }
 
     const expBnt = `<div><a class="travel-duration" data-document-id="${partySheet.actor.id}" >Calculate Travel duration   <i class="far fa-clock"></i></a></div>`;
-    html.find('.exploration-members').find('.summary-data').append(expBnt)
+    const expBntSrt = `<div><a class="travel-duration-short" data-document-id="${partySheet.actor.id}" >Calculate Travel (Easy mod)  <i class="far fa-clock"></i></a></div>`;
+    html.find('.exploration-members').find('.summary-data').append(expBnt).append(expBntSrt)
 
     $(html.find('.travel-duration')).on("click", async function(el) {
         el.stopPropagation();
@@ -317,6 +324,57 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
         const members = party.members.filter(a=>!a.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
         if (members.length > 0) {
             game.pf2e.gm.launchTravelSheet(members);
+        }
+    });
+
+    $(html.find('.travel-duration-short')).on("click", async function(el) {
+        el.stopPropagation();
+        const party = game.actors.get($(el.currentTarget).data().documentId)
+        const members = party.members.filter(a=>!a.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
+
+        if (members.length > 0) {
+            const speed = Math.min(...members.map(m=>m.attributes.speed.total));
+
+            new Dialog({
+                title: "Calculator",
+                content: `<form><div class="form-group travel-duration">
+                    <label>Distance</label>
+                    <div class="journey-input">
+                        <input name="distance" value="0" type="number" data-dtype="Number">
+                        <select name="distanceUnit">
+                            <option value="feet">Feet</option>
+                            <option value="miles" selected>Miles</option>
+                        </select>
+                    </div>
+                </div></form>`,
+                buttons: {
+                    ok: {
+                        label: "<span class='pf2-icon'>1</span> Calculate",
+                        callback: async (html) => {
+                            let dist = html.find("[name=distance]").val();
+                            const unit = html.find("[name=distanceUnit]").val();
+
+                            if (unit === 'miles') {
+                                dist *= golarionMileInFeet;
+                            }
+                            const totalMinutes = Math.round(dist / (speed * 10));
+
+                            const weeks = Math.floor(totalMinutes / minutesPerWeek);
+                            const days = Math.floor((totalMinutes - weeks * minutesPerWeek) / minutesPerDay);
+                            const hours = Math.floor((totalMinutes - weeks * minutesPerWeek - days * minutesPerDay) / 60);
+                            const minutes = totalMinutes - weeks * minutesPerWeek - days * minutesPerDay - hours * 60;;
+
+                            const message = `${weeks ? 'Weeks ' + weeks + ' ' : ''}${days ? 'Days ' + days + ' ' : ''}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+                            ui.notifications.info("Total duration: " + message);
+                        }
+                    },
+                    cancel: {
+                        label: "<span class='pf2-icon'>R</span> Cancel"
+                    }
+                },
+                default: "cancel",
+            }).render(true);
         }
     });
 
