@@ -53,7 +53,7 @@ function healthStatuses() {
 };
 
 function calculateColor(percent) {
-    if (percent === 0) return gradient[0][1];
+    if (percent === 0 || isNaN(percent)) return gradient[0][1];
 
     let colorRange = []
     for (let i = 0; i < gradient.length; i++) {
@@ -236,6 +236,7 @@ Hooks.on('renderSidebarTab', function(tab, html, data) {
         $( newBtn ).insertBefore( row.find('span') );
 
         $(row.find('.create-combat')).on("click", async function(el) {
+            el.stopPropagation();
             if (game.combat) {ui.notifications.info("Combat already exists");return}
 
             await Combat.create({scene: canvas.scene.id, active: true});
@@ -305,5 +306,18 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
 
         $(html.find('.inventory-members').find('.summary-data').children()[1]).css({ display: "none" })
     }
+
+    const expBnt = `<div><a class="travel-duration" data-document-id="${partySheet.actor.id}" >Calculate Travel duration   <i class="far fa-clock"></i></a></div>`;
+    html.find('.exploration-members').find('.summary-data').append(expBnt)
+
+    $(html.find('.travel-duration')).on("click", async function(el) {
+        el.stopPropagation();
+        const party = game.actors.get($(el.currentTarget).data().documentId)
+
+        const members = party.members.filter(a=>!a.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
+        if (members.length > 0) {
+            game.pf2e.gm.launchTravelSheet(members);
+        }
+    });
 
 });

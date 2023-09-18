@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.0.16
+
+- Button to call Travel Duration Calculator 
+
 ## Version 0.0.15
 
 - Button for create encounter for party
