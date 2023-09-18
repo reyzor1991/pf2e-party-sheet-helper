@@ -6,4 +6,4 @@
 - Health Estimate(Label, color)
 - Origin/Z-Scatter method for depositing PC Tokens
 - Button for create encounter for party
-
+- Buttons for calculate travel speeds
