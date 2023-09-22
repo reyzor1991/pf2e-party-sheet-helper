@@ -85,9 +85,9 @@ function calculateColor(percent) {
 }
 
 function pickHex(color1, color2, weight) {
-    var w1 = weight;
-    var w2 = 1 - w1;
-    var rgb = [Math.round(color1[0] * w1 + color2[0] * w2),
+    const w1 = weight;
+    const w2 = 1 - w1;
+    const rgb = [Math.round(color1[0] * w1 + color2[0] * w2),
         Math.round(color1[1] * w1 + color2[1] * w2),
         Math.round(color1[2] * w1 + color2[2] * w2)];
     return rgb;
@@ -124,6 +124,13 @@ Hooks.on('init', function(partySheet, html, data) {
     });
     game.settings.register(moduleName, "useHealthStatus", {
         name: "Use Health Status at party sheet",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "partyLeader", {
+        name: "Possibility to set party leader",
         scope: "world",
         config: true,
         default: false,
@@ -298,7 +305,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
 
     });
 
-    if (game.settings.get(moduleName, "useHealthStatus")) {
+    if (game.settings.get(moduleName, "useHealthStatus") && !game.user.isGM) {
         const statuses = healthStatuses();
         if (statuses.length) {
             partySheet.actor.members.forEach((actor) => {
@@ -306,6 +313,31 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
             });
         }
     };
+
+    if (game.settings.get(moduleName, "partyLeader")) {
+        if (html.find('leader-position').length === 0) {
+            const lead = partySheet.actor.getFlag(moduleName, "leader") ?? 'none';
+
+            const members = partySheet.actor.members.filter(a=>!a.isOfType("familiar"))
+                .filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
+                .map(a=>`<option value="${a.uuid}" ${lead === a.uuid ? 'selected' : ''}>${a.name}</option>`).join('')
+
+            html.find('.content').find('.summary > nav')
+                .append(`<div class="leader-position"><label>Choose a leader:</label><select name="leader" class="change-leader"><option value="none" ${lead === 'none' ? 'selected' : ''}>None</option>${members}</select></div>`)
+
+            if (lead != 'none') {
+                const aaa = html.find('div[data-tab="overview"]').find('div.content')
+                aaa.find('.member').sort(function (a, b) {
+                    return a.dataset.actorUuid === lead ? -1 : 1;
+                })
+                .appendTo( aaa );
+            }
+
+            $(html.find('.change-leader')).on("change", async function(el) {
+                await partySheet.actor.setFlag(moduleName, "leader", $(this).val());
+            });
+        }
+    }
 
     if (game.settings.get(moduleName, "hideWealthFromPC") && !game.user.isGM) {
         html.find('.inventory-members').find('.sub-data > .value').addClass("hidden");

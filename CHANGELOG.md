@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.0.18
+
+- Add leader in party sheet
+
 ## Version 0.0.17
 
 - Easy Version of Travel Duration Calculator 
