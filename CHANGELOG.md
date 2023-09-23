@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.0.19
+
+- Make rollable buttons in Actor section
+
 ## Version 0.0.18
 
 - Add leader in party sheet

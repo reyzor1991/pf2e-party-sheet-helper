@@ -263,47 +263,57 @@ Hooks.on('renderSidebarTab', function(tab, html, data) {
     }
 })
 
-Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
+async function handleSkillRoll(event, partySheet) {
+    const skill = $(event.currentTarget).data().slug;
+    if (!skill) {return}
+    const isRecKnow = $(event.currentTarget).closest(".summary").find('nav > .active').data()?.view === 'rk'
+
     const levels = partySheet.actor.members.map(a=>a.level)
     const defDC = (dcByLevel.get(Math.round(levels.reduce((a, b) => a + b, 0)/levels.length)) ?? 50);
 
-    html.find('.skills > .tag-light.tooltipstered').click(async (event) => {
-        const skill = $(event.currentTarget).data().slug;
-        const isSecret = (event.ctrlKey || event.metaKey);
+    const isSecret = (event.ctrlKey || event.metaKey);
 
-        const { dc } = await Dialog.wait({
-            title:"DC of skill",
-            content: `
-                <h3>DC of check</h3>
-                <input id="skill-dc" type="number" min="0" value=${defDC} />
-            `,
-            buttons: {
-                    ok: {
-                        label: "Create DC Template",
-                        icon: "<i class='fa-solid fa-magic'></i>",
-                        callback: (html) => { return { dc: parseInt(html[0].querySelector("#skill-dc").value) } }
-                    },
-                    cancel: {
-                        label: "Cancel",
-                        icon: "<i class='fa-solid fa-ban'></i>",
-                    }
-            },
-            default: "ok"
-        });
-        if (dc === undefined) { return; }
-
-
-        if (event.shiftKey) {
-            navigator.clipboard.writeText(`@Check[type:${skill}|dc:${dc}${isSecret?'|traits:secret':''}]{${skill.capitalize()} Check}`);
-            ui.notifications.info("Copied the text of check");
-        } else {
-            ChatMessage.create({
-                type: CONST.CHAT_MESSAGE_TYPES.OOC,
-                content: `@Check[type:${skill}|dc:${dc}${isSecret?'|traits:secret':''}]{${skill.capitalize()} Check}`
-            });
-        }
-
+    const { dc } = await Dialog.wait({
+        title:"DC of skill",
+        content: `
+            <h3>DC of check</h3>
+            <input id="skill-dc" type="number" min="0" value=${defDC} />
+        `,
+        buttons: {
+                ok: {
+                    label: "Create DC Template",
+                    icon: "<i class='fa-solid fa-magic'></i>",
+                    callback: (html) => { return { dc: parseInt(html[0].querySelector("#skill-dc").value) } }
+                },
+                cancel: {
+                    label: "Cancel",
+                    icon: "<i class='fa-solid fa-ban'></i>",
+                }
+        },
+        default: "ok"
     });
+    if (dc === undefined) { return; }
+
+    let traits = []
+    if (isSecret) {traits.push('secret')}
+    if (isRecKnow) {traits.push('action:recall-knowledge')}
+    traits = traits.join(',')
+    const content = `@Check[type:${skill}|dc:${dc}${traits?'|traits:'+traits:''}]{${skill.capitalize()} Check}`
+    if (event.shiftKey) {
+        navigator.clipboard.writeText(content);
+        ui.notifications.info("Copied the text of check");
+    } else {
+        ChatMessage.create({
+            type: CONST.CHAT_MESSAGE_TYPES.OOC,
+            content
+        });
+    }
+}
+
+Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
+    html.find('.skills > .tag-light').click(async (event) => {
+        handleSkillRoll(event, partySheet)
+    })
 
     if (game.settings.get(moduleName, "useHealthStatus") && !game.user.isGM) {
         const statuses = healthStatuses();
