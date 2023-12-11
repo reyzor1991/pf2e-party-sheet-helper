@@ -2,7 +2,7 @@
   "id": "pf2e-party-sheet-helper",
   "title": "PF2e Party Sheet Helper",
   "description": "PF2e Party Sheet Helper",
-  "version": "0.0.19",
+  "version": "0.0.49",
   "authors": [
     {
       "name": "Reyzor",
@@ -17,12 +17,13 @@
   "styles": [
     "pf2e-party-sheet-helper.css"
   ],
+  "socket": true,
   "packFolders": [],
   "packs": [],
   "media": [],
   "compatibility": {
     "minimum": "11",
-    "verified": "11.308"
+    "verified": "11.315"
   },
   "manifest": "https://github.com/reyzor1991/pf2e-party-sheet-helper/releases/latest/download/module.json",
   "download": "https://github.com/reyzor1991/pf2e-party-sheet-helper/releases/latest/download/pf2e-party-sheet-helper.zip",
@@ -38,7 +39,7 @@
         "manifest": "https://github.com/foundryvtt/pf2e/releases/latest/download/system.json",
         "compatibility": {
           "minimum": "5.4.0",
-          "verified": "5.5.1"
+          "verified": "5.10.5"
         }
       }
     ],

@@ -1,5 +1,52 @@
 const moduleName = "pf2e-party-sheet-helper";
 
+let socketlibSocket = undefined;
+
+const setupSocket = () => {
+  if (globalThis.socketlib) {
+      socketlibSocket = globalThis.socketlib.registerModule(moduleName);
+      socketlibSocket.register("sendItemToActor", sendItemToActor);
+  }
+  return !!globalThis.socketlib
+}
+
+async function sendItemToActor(ownerId, targetId, itemId, qty, stack) {
+    const target = game.actors.get(targetId)
+    if (!hasPermissions(target)) {
+        socketlibSocket._sendRequest("sendItemToActor", [ownerId, targetId, itemId, qty, stack], 0)
+        return
+    }
+
+    const owner = game.actors.get(ownerId)
+    if (!owner || !target) return
+
+    const item = owner.items.get(itemId)
+    if (!item) return
+
+    owner.transferItemToActor(target, item, qty, undefined, stack);
+
+    ChatMessage.create({
+        type: CONST.CHAT_MESSAGE_TYPES.EMOTE,
+        flavor: `<h4 class="action"><strong>Interact</strong><span class="action-glyph">A</span><span class="subtitle">(Give item)</span></h4><div class="tags"><span class="tag tooltipstered" data-slug="manipulate" data-description="PF2E.TraitDescriptionManipulate">Manipulate</span></div><hr class="action-divider">`,
+        content: `<p class="action-content"><img src="${item.img}">${owner.name} gives ${qty} × ${item.name} to ${target.name}.</p>`,
+        speaker: ChatMessage.getSpeaker({ actor:  owner }),
+    })
+}
+
+function chatUUID(uuid, label, fake = false) {
+    if (fake) {
+        return `<span style="background: #DDD; padding: 1px 4px; border: 1px solid var(--color-border-dark-tertiary);
+border-radius: 2px; white-space: nowrap; word-break: break-all;">${label}</span>`
+    } else {
+        if (label) return `@UUID[${uuid}]{${label}}`
+        return `@UUID[${uuid}]`
+    }
+}
+
+Hooks.once('setup', function () {
+    if (!setupSocket()) console.error('Error: Unable to set up socket lib for PF2e Party Sheet Helper')
+});
+
 const dcByLevel = new Map([
     [-1, 13],
     [0, 14],
@@ -29,6 +76,8 @@ const dcByLevel = new Map([
     [24, 48],
     [25, 50],
 ]);
+
+let allTraits = {}
 
 const golarionMileInFeet = 6000;
 
@@ -105,13 +154,46 @@ function healthEstimateForActor(actor, html, statuses) {
         label = statuses.find((e) => percent <= e.percent.to && percent>= e.percent.from)?.label ?? 'Undefined';
     };
 
-    const overHpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar');
-    overHpBar.find('span').text(`${label}`);
-    overHpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
+    const overHpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar:not(.stamina-bar)');
+    const expHpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.health-bar:not(.stamina-bar)');
+    if (!game.user.isGM) {
+        overHpBar.find('span').text(`${label}`);
+        overHpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
 
-    const expHpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.health-bar');
-    expHpBar.find('span').text(`${label}`);
-    expHpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
+        expHpBar.find('span').text(`${label}`);
+        expHpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
+    } else {
+        overHpBar.attr("data-tooltip", label)
+        expHpBar.attr("data-tooltip", label)
+    }
+
+    if (game.settings.get("pf2e", "staminaVariant")) {
+        if (actor.system.attributes.hp.sp) {
+            const spPercent = (actor.system.attributes.hp.sp.value / actor.system.attributes.hp.sp.max) * 100;
+            let spColor = calculateColor(spPercent);
+            let spLabel = '?';
+            if (spPercent === 0 ) {
+                spLabel = statuses[0].label
+            } else if (spPercent === 100 ) {
+                spLabel = statuses[statuses.length-1].label
+            } else {
+                spLabel = statuses.find((e) => spPercent <= e.percent.to && spPercent>= e.percent.from)?.label ?? 'Undefined';
+            };
+
+            const expSpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.stamina-bar');
+            const overSpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.stamina-bar');
+            if (!game.user.isGM) {
+                overSpBar.find('span').text(`${spLabel}`);
+                overSpBar.find('.bar').css({'background-color': `rgb(${spColor[0]},${spColor[1]},${spColor[2]})`});
+
+                expSpBar.find('span').text(`${spLabel}`);
+                expSpBar.find('.bar').css({'background-color': `rgb(${spColor[0]},${spColor[1]},${spColor[2]})`});
+            } else {
+                overSpBar.attr("data-tooltip", spLabel)
+                expSpBar.attr("data-tooltip", spLabel)
+            }
+        }
+    }
 };
 
 Hooks.on('init', function(partySheet, html, data) {
@@ -149,6 +231,83 @@ Hooks.on('init', function(partySheet, html, data) {
         config: true,
         default: false,
         type: Boolean,
+    });
+    game.settings.register(moduleName, "showSubsystem", {
+        name: "Show subsystems to PCs",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "showEffects", {
+        name: "Show effects",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "showFocus", {
+        name: "Show Focus Points",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "showSpells", {
+        name: "Show Spells Info",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "showPrintPC", {
+        name: "Show print button to PC",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "printExtendedInfo", {
+        name: "Print extended info",
+        hint: "Print rarity, traits, description",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "printShowPrice", {
+        name: "Print price of items",
+        scope: "world",
+        config: true,
+        default: true,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "hideGeneralInfo", {
+        name: "Hide general info about player at Party Sheet",
+        hint: "Hide information about race/class/sex",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "maxEncumbrance", {
+        name: "Set max encumbrance for party sheet",
+        scope: "world",
+        config: true,
+        default: 0,
+        type: Number,
+    });
+    game.settings.register(moduleName, "maxEncumbranceBehaviour", {
+        name: "Behaviour of Max Encumbrance logic",
+        scope: "world",
+        config: true,
+        type: String,
+        choices: {
+            "notify": "Sent notification",
+            "notadd": "Not add to stash"
+        },
+        default: "notify",
+        onChange: value => {}
     });
 });
 
@@ -242,7 +401,8 @@ Hooks.on('renderSidebarTab', function(tab, html, data) {
     if (tab.id != 'actors') {return;}
 
     const header = html.find('.directory-list').find('.party-list').find('header');
-    const party = game.actors.get(header.data().documentId)
+    const party = game.actors.get(header.data()?.documentId)
+    if (!party) {return}
     const row = header.find('.noborder');
     if (row.find('.create-combat').length === 0) {
         const newBtn = `<a class="create-combat left-control" data-tooltip="Create Combat"><i class="fas fa-swords"></i></a>`;
@@ -250,13 +410,18 @@ Hooks.on('renderSidebarTab', function(tab, html, data) {
 
         $(row.find('.create-combat')).on("click", async function(el) {
             el.stopPropagation();
-            if (game.combat) {ui.notifications.info("Combat already exists");return}
+            let tokens = party.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug)).map(m=>m.getActiveTokens(true, true)).flat();
+            if (game.combat) {
+                let included = game.combat.turns.map(a=>a.token.id)
+                tokens = tokens.filter(a=>!included.includes(a.id))
+                await game.combat.createEmbeddedDocuments( "Combatant", tokens.map(t=>{return {tokenId: t.id} } ))
+                ui.notifications.info("Combatants were added");
+                return
+            }
 
             await Combat.create({scene: canvas.scene.id, active: true});
-            const tokens = party.members.map(m=>m.getActiveTokens(true, true)).flat();
             if (tokens.length > 0) {
                 await game.combat.createEmbeddedDocuments( "Combatant", tokens.map(t=>{return {tokenId: t.id} } ))
-
                 ui.notifications.info("Combat was created");
             }
         });
@@ -310,12 +475,29 @@ async function handleSkillRoll(event, partySheet) {
     }
 }
 
+function addStamina(partySheet, html) {
+    if (!game.settings.get("pf2e", "staminaVariant")) {return}
+
+    partySheet.actor.members.forEach((actor) => {
+        html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar').css({'bottom': '10px'});
+        const percent = !actor.system.attributes.hp.sp ? -1 : (actor.system.attributes.hp.sp.value  / actor.system.attributes.hp.sp.max) * 100;
+        let text = percent < 0 ? '-' : `${actor.system.attributes.hp.sp.value} / ${actor.system.attributes.hp.sp.max}`;
+        html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.portrait')
+            .append(`<div class="health-bar stamina-bar" style=" bottom: -10px;"><div class="bar" style="width: ${percent < 0 ? 0 : percent}%; background-color: #3535d7;"></div><span><i class="fa-solid fas fa-running"></i>${text}</span></div>`)
+
+        html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent()
+            .append(`<footer class="health-bar stamina-bar"><div class="bar" style="width: ${percent < 0 ? 0 : percent}%; background-color: #3535d7;"></div><span><i class="fas fa-running"></i>${text}</span></footer>`);
+
+    });
+}
+
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
     html.find('.skills > .tag-light').click(async (event) => {
         handleSkillRoll(event, partySheet)
     })
+    addStamina(partySheet, html)
 
-    if (game.settings.get(moduleName, "useHealthStatus") && !game.user.isGM) {
+    if (game.settings.get(moduleName, "useHealthStatus")) {
         const statuses = healthStatuses();
         if (statuses.length) {
             partySheet.actor.members.forEach((actor) => {
@@ -324,11 +506,62 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
         }
     };
 
+    let showEffects = game.settings.get(moduleName, "showEffects");
+    let showFocus = game.settings.get(moduleName, "showFocus");
+    let showSpells = game.settings.get(moduleName, "showSpells");
+
+    const partyItems = html.find('[data-tab=overview] .member');
+    partyItems.each((index, element) => {
+        const aId = $(element).data().actorUuid.replace('Actor.', '');
+        const actor = game.actors.get(aId);
+
+        if (showEffects) {
+            const senses = (actor?.system?.traits?.senses ?? []).map(sense=> {
+                let senseLabel = game.i18n.localize(`PF2E.Actor.Creature.Sense.Type.${sense.type.capitalize()}`);
+                if (sense.value) { senseLabel += ` (Precise ${sense.value} ft.)`}
+                return senseLabel;
+            });
+
+            const data = senses.length > 0 ? `<label  class="senses-text" data-tooltip="${senses.join('<br/>')}">Senses</label>` : `<label class="senses-text">No Special Senses</label>`
+            $(element).find('.score.senses').addClass("senses-new")
+            $(element).find('.score.senses').html(data);
+
+            if ($(element).find('.elements').length === 0) {
+                const span = [...actor.itemTypes.condition, ...actor.itemTypes.effect].map(a=>{
+                    let span = `<div class="item-image" style="background-image: url(${a.img})" data-tooltip="${a.name}">`
+                    if (a.value && a.value > 0) {
+                        span += `<div class="value-wrapper"><div class="value"><strong style="display: inline;">${a.value}</strong></div></div>`
+                    }
+                    span += `</div>`
+                    return span;
+                }).join('')
+                const effects = `<section class="effects"><div class="value" style="display: flex;">${span}</div></section>`
+                $(element).find('.main-stats').append(effects)
+            }
+        }
+
+        if (showFocus && actor && actor.isOfType("character") && actor.system.resources.focus.max > 0) {
+            let pips = '<span class="pips">'
+            let val = actor.system.resources.focus.value;
+            for (let i = 0; i < actor.system.resources.focus.max; i++) {
+                pips += `<i class='${val > i ? "fa-solid fa-dot-circle" : "fa-regular fa-circle"}'></i>`
+            }
+            pips += '</span>'
+            $(element).find('.saving-throws').after(`<section class="focus"><div class="value"><h4>Focus</h4>${pips}</div></section>`)
+        }
+        if (showSpells) {
+            let spells =  spellData(actor)
+            if (spells.length > 0) {
+                $(element).find('.saving-throws').after(`<section class="spells-data"><label class="spells-text" data-tooltip="${spells.map(a=>`${a.rank} Rank - ${a.active}/${a.max}`).join('<br/>')}">Spells Info</label></section>`)
+            }
+        }
+    });
+
     if (game.settings.get(moduleName, "partyLeader")) {
         if (html.find('leader-position').length === 0) {
             const lead = partySheet.actor.getFlag(moduleName, "leader") ?? 'none';
 
-            const members = partySheet.actor.members.filter(a=>!a.isOfType("familiar"))
+            const members = partySheet.actor.members.filter(a=>!a?.isOfType("familiar"))
                 .filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
                 .map(a=>`<option value="${a.uuid}" ${lead === a.uuid ? 'selected' : ''}>${a.name}</option>`).join('')
 
@@ -363,7 +596,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
         el.stopPropagation();
         const party = game.actors.get($(el.currentTarget).data().documentId)
 
-        const members = party.members.filter(a=>!a.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
+        const members = party.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
         if (members.length > 0) {
             game.pf2e.gm.launchTravelSheet(members);
         }
@@ -372,7 +605,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
     $(html.find('.travel-duration-short')).on("click", async function(el) {
         el.stopPropagation();
         const party = game.actors.get($(el.currentTarget).data().documentId)
-        const members = party.members.filter(a=>!a.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
+        const members = party.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
 
         if (members.length > 0) {
             const speed = Math.min(...members.map(m=>m.attributes.speed.total));
@@ -420,4 +653,255 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
         }
     });
 
+    const foodMembers = partySheet.actor.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug));
+    const allFood = [...foodMembers.map(a=>[...a.itemTypes.equipment,...a.itemTypes.consumable]).flat(), ...partySheet.actor.itemTypes.equipment,...partySheet.actor.itemTypes.consumable]
+
+    const rations = allFood.filter(a=>a.slug === "rations")
+                        .map(a=>a.uses.value + (a.uses.max * (a.quantity-1)) )
+                        .reduce((accumulator, currentValue) => { return accumulator + currentValue},0);
+    const rationTonic = allFood.filter(a=>a.slug === "ration-tonic")
+                        .map(a=>a.quantity)
+                        .reduce((accumulator, currentValue) => { return accumulator + currentValue},0);
+    const rationTonicGreater = allFood.filter(a=>a.slug === "ration-tonic-greater")
+                        .map(a=>7 * a.quantity)
+                        .reduce((accumulator, currentValue) => { return accumulator + currentValue},0);
+    const water = allFood.filter(a=>a.slug === "waterskin")
+                        .map(a=>a.quantity)
+                        .reduce((accumulator, currentValue) => { return accumulator + currentValue},0);
+
+    html.find('.exploration-members').find('.summary-data')
+        .append(`<div><label>Food per Party—Days</label><span class="value">${Math.floor((rations+rationTonic+rationTonicGreater)/foodMembers.length)}</span></div>`)
+        .append(`<div><label>Water per Party—Days</label><span class="value">${Math.floor(water/foodMembers.length)}</span></div>`)
+
+    let max = game.settings.get(moduleName, "maxEncumbrance");
+    if (max && max > 0) {
+        let bar =  html.find('.total-bulk').find('.inventory-header')
+        bar.css("justify-content", "space-between");
+        bar.append(`<span>Max Bulk: ${max}</span>`)
+    }
+
+    if (game.settings.get(moduleName, "hideGeneralInfo")) {
+        html.find('[data-tab="overview"]').find('.member header .blurb').hide()
+    }
+});
+
+function spellData(actor) {
+    let data = []
+    let slotsEntry = actor.itemTypes.spellcastingEntry.filter(a=>a.isPrepared).map(a=>a?.system?.slots).filter(a=>a);
+    slotsEntry.forEach(slots => {
+        let keys = Object.keys(slots).filter(a=>a!='slot0')
+
+        keys.forEach(k=>{
+            if (slots[k].max > 0) {
+                data.push({
+                    rank:  Number(k.substring(4)),
+                    active: Object.values(slots[k].prepared).filter(a=>!a.expended).length,
+                    max: slots[k].max
+                });
+            }
+        })
+    });
+
+    let spontaneousEntry = actor.itemTypes.spellcastingEntry.filter(a=>a.isSpontaneous).map(a=>a?.system?.slots).filter(a=>a);
+    spontaneousEntry.forEach(slots => {
+        let keys = Object.keys(slots).filter(a=>a!='slot0')
+
+        keys.forEach(k=>{
+            if (slots[k].max > 0) {
+                data.push({
+                    rank:  Number(k.substring(4)),
+                    active: slots[k].value,
+                    max: slots[k].max
+                });
+            }
+        })
+    });
+
+    let innateEntry = actor.itemTypes.spellcastingEntry.filter(a=>a.isInnate);
+    innateEntry.forEach(slots => {
+        let spells = slots.spells.contents.map(a=>a.system.location);
+        spells.forEach(k=>{
+            if (k.uses.max > 0) {
+                data.push({
+                    rank:  k.heightenedLevel,
+                    active: k.uses.value,
+                    max: k.uses.max
+                });
+            }
+        })
+    });
+
+    return data;
+}
+
+
+Hooks.on('renderActorSheetPF2e', function(sheet, html, data) {
+    if (sheet.actor.type  != "character") {return}
+    if (sheet.actor.parties.size === 0) {return}
+
+    const parties = [...sheet.actor.parties];
+    const partyActors = parties
+        .map(p=>p.members).flat().filter(a=>a.id!=sheet.actor.id)
+        .filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug));
+
+    html.find('.sheet-content').find('.wealth').append('<a class="show-party-members" title="Party Members" style=""><i class="fa-solid fa-address-card"></i></a>')
+    const members = [...partyActors, ...parties].map(a=>`<li class="box "><div class="actor-link content" data-actor-uuid="${a.uuid}" data-action="open-sheet" data-tab="inventory"><img src="${a.getActiveTokens(false, true)[0]?.texture?.src ?? a.img}" data-tooltip="${a.name}"></div><div class="footer"><i class="fa-solid fa-weight-hanging"></i> ${toBulk(a.inventory.bulk.value)}/${a?.isOfType('party') ? '∞' : a.inventory.bulk.encumberedAfter + 'B'}</div></li>`).join('');
+    const memberList = `<section data-region="inventoryMembers"><ol class="box-list inventory-members" style="flex-direction: row; flex-wrap: wrap; justify-content: center;">${members}</ol></section>`
+    html.find('.sheet-content').find('.coinage').append(`<div class="sidebar-party-members" style="display: ${sheet.actor.getFlag(moduleName, 'partySharingDisplay') ?? 'none'}">${memberList}</aside>`);
+
+    $(html.find('.show-party-members')).on("click", async function(el) {
+        el.stopPropagation();
+        html.find('.sidebar-party-members').toggle();
+
+        sheet.actor.update({
+            flags: {
+                [moduleName]: {
+                    'partySharingDisplay': html.find('.sidebar-party-members').css('display') ?? 'none'
+                }
+            }
+        }, { "noHook": true });
+    });
+});
+
+function toBulk(bulk) {
+    let data = '';
+
+    if (bulk?.normal > 0) {data += ` ${bulk?.normal}B`}
+    if (bulk?.light > 0) {data += `${!!data ? ',' : ''}${bulk?.light}L`}
+
+    return data;
+}
+
+Hooks.once("ready", () => {
+    allTraits = {
+        ...CONFIG.PF2E.equipmentTraits,
+        ...CONFIG.PF2E.weaponTraits,
+    };
+});
+
+Hooks.on("ready", () => {
+    const charSheet = Actors.registeredSheets.find(a=>a.name==="CharacterSheetPF2e");
+    if (!charSheet) {return}
+    const originCall = charSheet.prototype._onDropItem
+
+    charSheet.prototype._onDropItem = async function(event, data) {
+        const droppedRegion = event.target?.closest("[data-region]")?.dataset.region;
+        const targetActor = event.target?.closest("[data-actor-uuid]")?.dataset.actorUuid;
+
+        if (droppedRegion === "inventoryMembers" && targetActor) {
+            const item = await CONFIG.Item.documentClass.fromDropData(data);
+            if (!item) return [];
+            const actorUuid = foundry.utils.parseUuid(targetActor).documentId;
+            if (actorUuid && item?.actor && item?.isOfType("physical")) {
+                const qty = item.quantity
+                if (qty < 1) return
+                if (qty === 1) return sendItemToActor(item.actor?.id, actorUuid, item.id, 1, false)
+
+                new MoveLootPopup(origin, { max: qty, lockStack: false, isPurchase: false }, (qty, stack) => {
+                    sendItemToActor(item.actor?.id, actorUuid, item.id, qty, stack)
+                }).render(true)
+            }
+        }
+
+        return await originCall.call(this, event, data);
+    }
+});
+
+function hasPermissions(item) {
+    return 3 === item?.ownership[game.user.id] || game.user.isGM;
+}
+
+class MoveLootPopup extends FormApplication {
+    constructor(object, options, callback) {
+        super(object, options)
+        this.onSubmitCallback = callback
+    }
+
+    async getData() {
+        const [prompt, buttonLabel] = this.options.isPurchase
+            ? ['PF2E.loot.PurchaseLootMessage', 'PF2E.loot.PurchaseLoot']
+            : ['PF2E.loot.MoveLootMessage', 'PF2E.loot.MoveLoot']
+
+        return {
+            ...(await super.getData()),
+            quantity: {
+                default: this.options.max,
+                max: this.options.max,
+            },
+            newStack: this.options.newStack,
+            lockStack: this.options.lockStack,
+            prompt,
+            buttonLabel,
+        }
+    }
+
+    static get defaultOptions() {
+        return {
+            ...super.defaultOptions,
+            id: 'MoveLootPopup',
+            classes: [],
+            title: game.i18n.localize('PF2E.loot.MoveLootPopupTitle'),
+            template: 'systems/pf2e/templates/popups/loot/move-loot-popup.hbs',
+            width: 'auto',
+            quantity: {
+                default: 1,
+                max: 1,
+            },
+            newStack: false,
+            lockStack: false,
+            isPurchase: false,
+        }
+    }
+
+    async _updateObject(_event, formData) {
+        this.onSubmitCallback(formData.quantity, formData.newStack)
+    }
+}
+
+Hooks.on('createItem',  (item, data) => {
+    if (!item?.actor) {return}
+    if (!item?.actor?.isOfType("party")) {return}
+    let max = game.settings.get(moduleName, "maxEncumbrance");
+    if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notify") {
+        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`)  > max) {
+            ui.notifications.info("Party Stash is Encumbered");
+        }
+    }
+});
+
+Hooks.on('updateItem',  (item, data) => {
+    if (!item?.actor) {return}
+    if (!item?.actor?.isOfType("party")) {return}
+    if (!data?.system?.quantity) {return}
+    let max = game.settings.get(moduleName, "maxEncumbrance");
+    if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notify") {
+        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`)  > max) {
+            ui.notifications.info("Party Stash is Encumbered");
+        }
+    }
+});
+
+Hooks.on('preCreateItem', (item, data) => {
+    if (!item?.actor) {return}
+    if (!item?.actor?.isOfType("party")) {return}
+    let max = game.settings.get(moduleName, "maxEncumbrance");
+    if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notadd") {
+        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`)  > max) {
+            ui.notifications.info("Party Stash is Encumbered");
+            return false;
+        }
+    }
+});
+
+Hooks.on('preUpdateItem', (item, data) => {
+    if (!item?.actor) {return}
+    if (!item?.actor?.isOfType("party")) {return}
+    if (!data?.system?.quantity) {return}
+    let max = game.settings.get(moduleName, "maxEncumbrance");
+    if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notadd") {
+        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`)  > max) {
+            ui.notifications.info("Party Stash is Encumbered");
+            return false;
+        }
+    }
 });

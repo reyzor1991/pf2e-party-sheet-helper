@@ -1,5 +1,116 @@
 # Changelog
 
+## Version 0.0.49
+-  Change logic of Inline sub-system checks
+
+## Version 0.0.48
+-  Show stamina in party sheet
+- Add tooltip to hp/sp values
+
+## Version 0.0.47
+-  New print option (show price), print loot actor
+
+## Version 0.0.46
+-  Hide information about race/class/sex at Party sheet (setting option) 
+
+## Version 0.0.45
+-  Focus points / Spell Info (setting option)
+
+## Version 0.0.44
+-  Improve css Focus points
+
+## Version 0.0.43
+-  Show Focus points / Spell Info in party sheet
+
+## Version 0.0.42
+-  Fix css
+
+## Version 0.0.41
+-  Fix reroll Influence checks
+
+## Version 0.0.40
+-  Inline Influence checks
+
+## Version 0.0.39
+-  Avoid errors during migration
+
+## Version 0.0.38
+-  Show only used subsystems, sort subsystem records
+-  Added Party Members to Created Encounter
+
+## Version 0.0.37
+-  Max Encumbered. Not add items behaviour (setting option)
+
+## Version 0.0.36
+
+-  Add Subsystems
+
+## Version 0.0.35
+
+-  Add Infiltration Sub system. Click pregen bnt to generate fields
+
+## Version 0.0.34
+
+-  Add Max Bulk for Party Sheet. Notify about Encumbered
+
+## Version 0.0.33
+
+-  Avoid pregen rewriting
+
+## Version 0.0.32
+
+-  Add Reputation pregen for Blood Lord
+
+## Version 0.0.31
+
+-  Share items fix
+
+## Version 0.0.30
+
+-  Share items fix
+
+## Version 0.0.29
+
+-  Fix extended Print inventory
+
+## Version 0.0.28
+
+-  Print inventory - add rarity, traits, description
+
+## Version 0.0.27
+
+-  New feature - print inventory (First stage)
+
+## Version 0.0.26
+
+-  Fix collapsed tab Party Sharing
+
+## Version 0.0.25
+
+-  Party Sharing update style
+
+## Version 0.0.24
+
+-  Party Sharing - add party actor to list
+
+## Version 0.0.23
+
+- Add Party Sharing support(tested/few issues)
+
+    Thank you Apostol Apostolov for idea 
+
+## Version 0.0.22
+
+- Add Food/Water Tracker
+
+## Version 0.0.21
+
+- Add Effects
+
+## Version 0.0.20
+
+- Add Reputation Subsystem 
+
 ## Version 0.0.19
 
 - Make rollable buttons in Actor section

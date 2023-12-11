@@ -1,0 +1,34 @@
+<form id="sub-systems" onsubmit="event.preventDefault();">
+    <div class="form-group">
+        <label>Subsystem</label>
+        <select name="drop-list" class="drop-list">
+            <option value="reputation" {{#if (eq 'reputation' dropListValue)}} selected {{/if}}>Reputation</option>
+            <option value="infiltration" {{#if (eq 'infiltration' dropListValue)}} selected {{/if}}>Infiltration</option>
+            <option value="influence" {{#if (eq 'influence' dropListValue)}} selected {{/if}}>Influence</option>
+            <option value="research" {{#if (eq 'research' dropListValue)}} selected {{/if}}>Research</option>
+            <option value="chases" {{#if (eq 'chases' dropListValue)}} selected {{/if}}>Chases</option>
+            <option value="victory-points" {{#if (eq 'victory-points' dropListValue)}} selected {{/if}}>Victory Points</option>
+        </select>
+        <a class="create-subsystem-row" style="flex: auto; visibility: {{addVisibility}};"><i class="fas fa-plus"></i></a>
+        <a class="create-pregen" style="flex: auto; visibility: {{pregenVisibility}};" title="Add pregenerated records"><i class="fas fa-atlas"></i></a>
+    </div>
+    <ul id="rows-list" class="directory-list package-list">
+        {{#each rows}}
+            <li class="package flexcol active" data-module-id="autoanimations">
+                <div class="package-overview flexrow">
+                    <input name="row-name" type="text" value="{{@key}}">
+                    <input name="row-value" type="number" value="{{this}}">
+                    <div style="display: flex;justify-content: space-around;">
+
+                        <a class="remove-subsystem-row" ><i class="fas fa-trash"></i></a>
+                    </div>
+                </div>
+            </li>
+        {{/each}}
+    </ul>
+    <div class="form-group buttons">
+        <button type="submit" name="submit">
+            <i class="far fa-save"></i> Save
+        </button>
+    </div>
+</form>
