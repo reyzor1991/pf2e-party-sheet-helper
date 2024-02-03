@@ -88,6 +88,10 @@
     width: 100%;
 }
 
+.sidebar-party-members .inventory-members {
+    display: flex;
+}
+
 .sidebar-party-members .box {
     width: 5.7rem;
     border: 1px solid #000;

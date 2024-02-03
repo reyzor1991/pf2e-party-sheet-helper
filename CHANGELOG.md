@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.0.50
+-  Fix inventory css
+
 ## Version 0.0.49
 -  Change logic of Inline sub-system checks
 
