@@ -169,12 +169,12 @@ class SubSystemForm extends FormApplication {
 };
 
 Hooks.on('getPartySheetPF2eHeaderButtons', function(app, buttons) {
-    if (!game.user.isGM) {return;}
+    if (!isGM()) {return;}
 
     buttons.unshift({
         label: "Subsystems",
         icon: "fa fa-gears",
-        class: moduleName,
+        class: `${moduleName}-sub-system`,
         onclick: () => {
             (new SubSystemForm({actor:app.actor}, async () => {
                 app.render(true, { tab: "sub-system" })
@@ -184,27 +184,35 @@ Hooks.on('getPartySheetPF2eHeaderButtons', function(app, buttons) {
 });
 
 Hooks.on('renderLootSheetPF2e', function(partySheet, html, data) {
-    if (!(game.user.isGM || game.settings.get(moduleName, "showPrintPC"))) {return}
+    if (!(isGM() || game.settings.get(moduleName, "showPrintPC"))) {return}
     html.find('.content').find('.inventory').find('.currency').append(`<li><button type="button" class="print-inv" data-tooltip="Print Inventory"><i class="fas fa-print"></i></button></li>`)
     html.find('.content').find('.inventory').find('.currency').find('.print-inv').on("click", async function(event) {
         let tab = window.open('about:blank', '_blank');
-        tab.document.write(fullGeneratePrintForActor(partySheet.actor));
-        tab.document.close();
+        if (!tab || navigator?.appVersion?.includes("FoundryVirtualTabletop")) {
+            saveDataToFile(fullGeneratePrintForActor(partySheet.actor), "text/html", `Printed_Inventory_${partySheet.actor.name}.html`)
+        } else {
+            tab.document.write(fullGeneratePrintForActor(partySheet.actor));
+            tab.document.close();
+        }
     })
 });
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
-    if (!(game.user.isGM || game.settings.get(moduleName, "showPrintPC"))) {return}
+    if (!(isGM() || game.settings.get(moduleName, "showPrintPC"))) {return}
     html.find('.container').find('.inventory').find('.currency').append(`<li><button type="button" class="print-inv" data-tooltip="Print Inventory"><i class="fas fa-print"></i></button></li>`)
     html.find('.container').find('.inventory').find('.currency').find('.print-inv').on("click", async function(event) {
         let tab = window.open('about:blank', '_blank');
-        tab.document.write(generatePrintForParty(partySheet.actor));
-        tab.document.close();
+        if (!tab || navigator?.appVersion?.includes("FoundryVirtualTabletop")) {
+            saveDataToFile(generatePrintForParty(partySheet.actor), "text/html", `Printed_Inventory_${partySheet.actor.name}.html`)
+        } else {
+            tab.document.write(generatePrintForParty(partySheet.actor));
+            tab.document.close();
+        }
     })
 });
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
-    if (!game.user.isGM && !game.settings.get(moduleName, "showSubsystem")) {return}
+    if (!isGM() && !game.settings.get(moduleName, "showSubsystem")) {return}
 
     const content = `
         <section class="tab sidebar-tab directory flexcol subsystem-section">
@@ -315,17 +323,25 @@ function subSystemRows(partySheet) {
             <h3 class="noborder"><i class="fas fa-folder-open fa-fw"></i>${subSystemLabels[obj]}</h3>
           </header>
           <ol class="subdirectory">
-                ${subSystemRow(subSystems[obj])}
+                ${subSystemRow(subSystems[obj], SUBSYSTEM_TIERS_LABELS[obj])}
           </ol>
         </li>`
         return a;
     }).join("")
 }
 
-function subSystemRow(subSystem) {
+function getTierLabelByValue(value, labels) {
+    if (!labels) {return ""}
+    let r = labels.find(s => value <= s[0]);
+    if (!r) {return ""}
+
+    return ` (${game.i18n.localize(r[1])})`
+}
+
+function subSystemRow(subSystem, labels) {
     return Object.entries(subSystem).sort()
         .map(a=>`<li class="directory-item compendium flexcol" style="display: flex;flex-direction: row;">
-                <h3 class="entry-name compendium-name">${a[0]}</h3><label>${a[1]}</label>
+                <h3 class="entry-name compendium-name">${a[0]}</h3><label>${a[1]}${getTierLabelByValue(a[1], labels)}</label>
             </li>`
         ).join("");
 }
@@ -375,4 +391,4 @@ async function saveSubsystemData(party, name, obj) {
 
     await party.unsetFlag(moduleName, "subsystems");
     await party.setFlag(moduleName, "subsystems", subsystems);
-}
+};

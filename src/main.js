@@ -1,5 +1,18 @@
 const moduleName = "pf2e-party-sheet-helper";
 
+const SUBSYSTEM_TIERS_LABELS = {
+    "reputation": [
+        [-30, `${moduleName}.subsystems.reputation.labels.hunted`],
+        [-15, `${moduleName}.subsystems.reputation.labels.hated`],
+        [-5, `${moduleName}.subsystems.reputation.labels.disliked`],
+        [4, `${moduleName}.subsystems.reputation.labels.ignored`],
+        [14, `${moduleName}.subsystems.reputation.labels.liked`],
+        [29, `${moduleName}.subsystems.reputation.labels.admired`],
+        [50, `${moduleName}.subsystems.reputation.labels.revered`],
+        [200, `${moduleName}.subsystems.reputation.labels.revered`]
+    ]
+};
+
 let socketlibSocket = undefined;
 
 const setupSocket = () => {
@@ -8,6 +21,10 @@ const setupSocket = () => {
       socketlibSocket.register("sendItemToActor", sendItemToActor);
   }
   return !!globalThis.socketlib
+}
+
+function isGM() {
+    return game.user.isGM;
 }
 
 async function sendItemToActor(ownerId, targetId, itemId, qty, stack) {
@@ -31,16 +48,6 @@ async function sendItemToActor(ownerId, targetId, itemId, qty, stack) {
         content: `<p class="action-content"><img src="${item.img}">${owner.name} gives ${qty} × ${item.name} to ${target.name}.</p>`,
         speaker: ChatMessage.getSpeaker({ actor:  owner }),
     })
-}
-
-function chatUUID(uuid, label, fake = false) {
-    if (fake) {
-        return `<span style="background: #DDD; padding: 1px 4px; border: 1px solid var(--color-border-dark-tertiary);
-border-radius: 2px; white-space: nowrap; word-break: break-all;">${label}</span>`
-    } else {
-        if (label) return `@UUID[${uuid}]{${label}}`
-        return `@UUID[${uuid}]`
-    }
 }
 
 Hooks.once('setup', function () {
@@ -143,7 +150,9 @@ function pickHex(color1, color2, weight) {
 }
 
 function healthEstimateForActor(actor, html, statuses) {
-    const percent = (actor.system.attributes.hp.value / actor.system.attributes.hp.max) * 100;
+    const percent = game.settings.get("pf2e", "staminaVariant")
+        ? ( (actor.system.attributes.hp.value + (actor.system.attributes.hp.sp?.value ?? 0) ) / (actor.system.attributes.hp.max + (actor.system.attributes.hp.sp?.max ?? 0))) * 100
+        : (actor.system.attributes.hp.value / actor.system.attributes.hp.max) * 100;
     let color = calculateColor(percent);
     let label = '?';
     if (percent === 0 ) {
@@ -156,7 +165,7 @@ function healthEstimateForActor(actor, html, statuses) {
 
     const overHpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar:not(.stamina-bar)');
     const expHpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.health-bar:not(.stamina-bar)');
-    if (!game.user.isGM) {
+    if (!isGM()) {
         overHpBar.find('span').text(`${label}`);
         overHpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
 
@@ -168,30 +177,18 @@ function healthEstimateForActor(actor, html, statuses) {
     }
 
     if (game.settings.get("pf2e", "staminaVariant")) {
-        if (actor.system.attributes.hp.sp) {
-            const spPercent = (actor.system.attributes.hp.sp.value / actor.system.attributes.hp.sp.max) * 100;
-            let spColor = calculateColor(spPercent);
-            let spLabel = '?';
-            if (spPercent === 0 ) {
-                spLabel = statuses[0].label
-            } else if (spPercent === 100 ) {
-                spLabel = statuses[statuses.length-1].label
-            } else {
-                spLabel = statuses.find((e) => spPercent <= e.percent.to && spPercent>= e.percent.from)?.label ?? 'Undefined';
-            };
 
-            const expSpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.stamina-bar');
-            const overSpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.stamina-bar');
-            if (!game.user.isGM) {
-                overSpBar.find('span').text(`${spLabel}`);
-                overSpBar.find('.bar').css({'background-color': `rgb(${spColor[0]},${spColor[1]},${spColor[2]})`});
+        const expSpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.stamina-bar');
+        const overSpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.stamina-bar');
+        if (!isGM()) {
+            overSpBar.find('span').text(`${label}`);
+            overSpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
 
-                expSpBar.find('span').text(`${spLabel}`);
-                expSpBar.find('.bar').css({'background-color': `rgb(${spColor[0]},${spColor[1]},${spColor[2]})`});
-            } else {
-                overSpBar.attr("data-tooltip", spLabel)
-                expSpBar.attr("data-tooltip", spLabel)
-            }
+            expSpBar.find('span').text(`${label}`);
+            expSpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
+        } else {
+            overSpBar.attr("data-tooltip", label)
+            expSpBar.attr("data-tooltip", label)
         }
     }
 };
@@ -234,6 +231,13 @@ Hooks.on('init', function(partySheet, html, data) {
     });
     game.settings.register(moduleName, "showSubsystem", {
         name: "Show subsystems to PCs",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "showAchievements", {
+        name: "Show achievements",
         scope: "world",
         config: true,
         default: false,
@@ -309,6 +313,22 @@ Hooks.on('init', function(partySheet, html, data) {
         default: "notify",
         onChange: value => {}
     });
+    game.settings.register(moduleName, "skills", {
+        name: "Store last skills rolls for GM",
+        hint: 'Now only deception skills',
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
+    game.settings.register(moduleName, "shareHero", {
+        name: "Share hero points between party and heroes",
+        hint: '',
+        scope: "world",
+        config: true,
+        default: 0,
+        type: Number,
+    });
 });
 
 Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
@@ -355,7 +375,7 @@ Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
                 clownCar.click();
                 return;
             }
-            const content = await renderTemplate("./modules/pf2e-party-sheet-helper/templates/clown-car-choise.hbs", {choices});
+            const content = await renderTemplate("modules/pf2e-party-sheet-helper/templates/clown-car-choise.hbs", {choices});
             new Dialog({
                 title: "Choice method of deposit PCs",
                 content,
@@ -398,11 +418,12 @@ async function zScatterDepositTokens(token, actor, scene) {
 }
 
 Hooks.on('renderSidebarTab', function(tab, html, data) {
+    if (!isGM()) { return; }
     if (tab.id != 'actors') {return;}
 
     const header = html.find('.directory-list').find('.party-list').find('header');
-    const party = game.actors.get(header.data()?.documentId)
-    if (!party) {return}
+    if (!header.length) {return}
+
     const row = header.find('.noborder');
     if (row.find('.create-combat').length === 0) {
         const newBtn = `<a class="create-combat left-control" data-tooltip="Create Combat"><i class="fas fa-swords"></i></a>`;
@@ -410,20 +431,82 @@ Hooks.on('renderSidebarTab', function(tab, html, data) {
 
         $(row.find('.create-combat')).on("click", async function(el) {
             el.stopPropagation();
+
+            let party = game.actors.get($(el.currentTarget).closest('header').data()?.documentId)
+            if (!party) {return}
+
             let tokens = party.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug)).map(m=>m.getActiveTokens(true, true)).flat();
             if (game.combat) {
                 let included = game.combat.turns.map(a=>a.token.id)
                 tokens = tokens.filter(a=>!included.includes(a.id))
-                await game.combat.createEmbeddedDocuments( "Combatant", tokens.map(t=>{return {tokenId: t.id} } ))
+                await game.combat.createEmbeddedDocuments( "Combatant", tokens.map(t=>{return {
+                    tokenId: t.id,
+                    actorId: t.actor?.id,
+                    sceneId: t.scene.id,
+                } } ))
                 ui.notifications.info("Combatants were added");
                 return
             }
 
             await Combat.create({scene: canvas.scene.id, active: true});
             if (tokens.length > 0) {
-                await game.combat.createEmbeddedDocuments( "Combatant", tokens.map(t=>{return {tokenId: t.id} } ))
+                await game.combat.createEmbeddedDocuments( "Combatant", tokens.map(t=>{return {
+                    tokenId: t.id,
+                    actorId: t.actor?.id,
+                    sceneId: t.scene.id,
+                } } ))
                 ui.notifications.info("Combat was created");
             }
+        });
+    }
+    if (row.find('.damage-all').length === 0) {
+        const dBtn = `<a class="damage-all left-control" data-tooltip="Damage/Heal All"><i class="fas fa-mace"></i></a>`;
+        $( dBtn ).insertBefore( row.find('span') );
+
+        $(row.find('.damage-all')).on("click", async function(el) {
+            el.stopPropagation();
+
+            let party = game.actors.get($(el.currentTarget).closest('header').data()?.documentId)
+            if (!party) {return}
+
+            let DamageRoll = CONFIG.Dice.rolls.find((r) => r.name === "DamageRoll")
+            if (!DamageRoll) {return}
+            const { formula } = await Dialog.wait({
+                title:"Apply damage/heal",
+                content: `<input type="text" name="name" /><br/><p>Positive value for Heal, negative for Damage</p>`,
+                buttons: {
+                        ok: {
+                            label: "Apply",
+                            icon: "<i class='fas fa-plus'></i>",
+                            callback: (html) => { return { formula: html.find('input').val()} }
+                        },
+                        cancel: {
+                            label: "Cancel",
+                            icon: "<i class='fa-solid fa-ban'></i>",
+                        }
+                },
+                default: "cancel"
+            });
+            if (!formula) {return}
+
+            let roll;
+            if (Number.isNumeric(formula)) {
+                roll = Number.parseInt(formula)
+            } else {
+                roll = new DamageRoll(formula.startsWith("-")?formula.slice(1):formula);
+                await roll.evaluate({ async: true });
+                roll.toMessage();
+                if (formula.startsWith("-")) {
+                    roll = -(roll.total)
+                }
+            }
+
+            roll *= -1;
+
+            party.members.forEach((actor, index) => {
+                actor.applyDamage({ damage: roll, token: actor.getActiveTokens(true, false)[0]});
+            });
+
         });
     }
 })
@@ -516,18 +599,17 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
         const actor = game.actors.get(aId);
 
         if (showEffects) {
-            const senses = (actor?.system?.traits?.senses ?? []).map(sense=> {
-                let senseLabel = game.i18n.localize(`PF2E.Actor.Creature.Sense.Type.${sense.type.capitalize()}`);
-                if (sense.value) { senseLabel += ` (Precise ${sense.value} ft.)`}
-                return senseLabel;
-            });
-
+            const senses = (actor?.system?.perception?.senses ?? []).map(sense=>sense.label);
             const data = senses.length > 0 ? `<label  class="senses-text" data-tooltip="${senses.join('<br/>')}">Senses</label>` : `<label class="senses-text">No Special Senses</label>`
             $(element).find('.score.senses').addClass("senses-new")
             $(element).find('.score.senses').html(data);
 
             if ($(element).find('.elements').length === 0) {
-                const span = [...actor.itemTypes.condition, ...actor.itemTypes.effect].map(a=>{
+                let baseEff = [...actor.itemTypes.condition, ...actor.itemTypes.effect];
+                if (!isGM()) {
+                    baseEff = baseEff.filter(a=>a.isIdentified);
+                }
+                const span = baseEff.map(a=>{
                     let span = `<div class="item-image" style="background-image: url(${a.img})" data-tooltip="${a.name}">`
                     if (a.value && a.value > 0) {
                         span += `<div class="value-wrapper"><div class="value"><strong style="display: inline;">${a.value}</strong></div></div>`
@@ -582,7 +664,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
         }
     }
 
-    if (game.settings.get(moduleName, "hideWealthFromPC") && !game.user.isGM) {
+    if (game.settings.get(moduleName, "hideWealthFromPC") && !isGM()) {
         html.find('.inventory-members').find('.sub-data > .value').addClass("hidden");
 
         $(html.find('.inventory-members').find('.summary-data').children()[1]).css({ display: "none" })
@@ -608,13 +690,16 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
         const members = party.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
 
         if (members.length > 0) {
-            const speed = Math.min(...members.map(m=>m.attributes.speed.total));
+            let speed = Math.min(...members.map(m=>m.attributes.speed.total));
 
             new Dialog({
                 title: "Calculator",
                 content: `<form><div class="form-group travel-duration">
-                    <label>Distance</label>
-                    <div class="journey-input">
+                    <div class="journey-calc">
+                        <label>Average speed</label>
+                        <input name="speed" value=${speed} type="number" data-dtype="Number">
+                        </br>
+                        <label>Distance</label>
                         <input name="distance" value="0" type="number" data-dtype="Number">
                         <select name="distanceUnit">
                             <option value="feet">Feet</option>
@@ -626,6 +711,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
                     ok: {
                         label: "<span class='pf2-icon'>1</span> Calculate",
                         callback: async (html) => {
+                            speed = html.find("[name=speed]").val();
                             let dist = html.find("[name=distance]").val();
                             const unit = html.find("[name=distanceUnit]").val();
 
@@ -808,7 +894,7 @@ Hooks.on("ready", () => {
 });
 
 function hasPermissions(item) {
-    return 3 === item?.ownership[game.user.id] || game.user.isGM;
+    return 3 === item?.ownership[game.user.id] || isGM();
 }
 
 class MoveLootPopup extends FormApplication {

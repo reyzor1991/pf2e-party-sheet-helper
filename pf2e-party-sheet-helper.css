@@ -171,3 +171,86 @@
 .sheet.party [data-tab=overview] .member > .data .main-stats > section.focus {
     display: flow;
 }
+
+.party .container .achievements.content {
+
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    display: flex;
+
+    .portrait {
+        height: 125px;
+        width: 100px;
+        margin: 25px;
+        position: relative;
+
+        img {
+            width: 100px;
+            height: 100px;
+        }
+
+        label {
+            display: block;
+            overflow: hidden;
+        }
+    }
+
+    i.close {
+        color: red;
+        position: absolute;
+        right: 0px;
+    }
+}
+
+.travel-duration .journey-calc {
+    display: grid;
+    column-gap: 5px;
+    grid: "size type"/100px 1fr 1fr;
+}
+
+.directory-list.skills li {
+    display: flex;
+    font-size: large;
+}
+
+.directory-list.skills div {
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+.sheet.party [data-tab=overview] .party-hero-points > * {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.sheet.party [data-tab=overview] .section-party-hero-points {
+    display: flex;
+    gap: 3px;
+}
+
+.sheet.party [data-tab=overview] .section-party-hero-points img {
+    border: none;
+}
+
+.sheet.party [data-tab=overview] .section-party-hero-points .data {
+    width: 100%;
+}
+
+.section-party-hero-points .data {
+    border-left: 1px solid #c9bfa9;
+    display: grid;
+    grid:
+        "sync-hero-points party-hero-points" / auto max-content;
+    margin-bottom: 0.25rem;
+    padding-left: 0.5rem;
+}
+
+.sheet.party [data-tab=overview] .party-hero-points > .empty {
+    border: 2px dashed rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+}
+
+.party-hero-points[data-action="adjust-hero-points"] {
+    display: flex;
+}

@@ -1,5 +1,58 @@
 # Changelog
 
+## Version 0.0.68,69
+- Share hero points between party and heroes
+
+## Version 0.0.66,67
+- Store last skills rolls for GM (deception/perception for start)
+
+## Version 0.0.65
+- Add field "speed" to Calculate Travel Easy mod 
+
+## Version 0.0.64
+-  Alphabetically Sort Achievements
+
+## Version 0.0.63
+-  Fix adding actors to encounter
+
+## Version 0.0.62
+-  Damage all feature - pf2e logic - minus when damage, plus when heal
+-  Print inventory fix
+
+## Version 0.0.61
+-  Move to dropbox
+
+## Version 0.0.60
+-  Show labels for Reputation Subsystem
+
+## Version 0.0.59
+-  Heal all (Minus value when damage all)
+
+## Version 0.0.58
+-  Fix Show Senses
+
+## Version 0.0.57
+-  Fix Achievements
+
+## Version 0.0.56
+-  Fix Open SubSystems
+
+## Version 0.0.55
+-  Add Achievements
+
+## Version 0.0.54
+-  Damage all button
+
+## Version 0.0.53
+-  Prepare senses to new release 
+-  Health Estimate - show HP/SP as combined label
+
+## Version 0.0.52
+-  Fix showing effects
+
+## Version 0.0.51
+-  Fix add to combat
+
 ## Version 0.0.50
 -  Fix inventory css
 

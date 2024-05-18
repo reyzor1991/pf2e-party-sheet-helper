@@ -1,0 +1,18 @@
+<form>
+    <div class="form-group">
+        <label>Name</label>
+        <input name="name" type="text">
+    </div>
+    <div class="form-group">
+        <label>Image</label>
+        <div class="form-fields">
+            {{filePicker target="texture.src" type="imagevideo"}}
+            <input class="image" type="text" name="texture.src" placeholder="path/image.png" value="{{object.texture.src}}" />
+        </div>
+    </div>
+    <div class="form-group buttons">
+        <button type="submit" name="submit">
+            <i class="far fa-save"></i> Save
+        </button>
+    </div>
+</form>
