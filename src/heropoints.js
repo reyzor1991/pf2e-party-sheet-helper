@@ -1,8 +1,9 @@
 Hooks.on('renderCharacterSheetPF2e', function(sheet, html) {
     if (!game.settings.get(moduleName, "shareHero")) {return}
     let activeParty = sheet.actor.parties.first();
+    if (!activeParty) {return}
     let hp = activeParty.getFlag(moduleName, 'heropoints');
-    if (!activeParty || !hp?.value) {return}
+    if (!hp?.value) {return}
 
     let f = html.find('.char-header .char-details')
     f.append(`<i class="fa-solid fa-hand-fist party-hero-points" title="Get Party Hero Points">`)

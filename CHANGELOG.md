@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.0.70
+- Fix rendering not party actors
+
 ## Version 0.0.68,69
 - Share hero points between party and heroes
 
