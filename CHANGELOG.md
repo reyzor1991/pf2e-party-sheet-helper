@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.1.0
+- Fix rendering party sheet
+
 ## Version 0.0.70
 - Fix rendering not party actors
 

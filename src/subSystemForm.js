@@ -12,7 +12,7 @@ class SubSystemForm extends FormApplication {
     }
 
     getData() {
-        return mergeObject(super.getData(), {
+        return foundry.utils.mergeObject(super.getData(), {
             rows: this.subsystemData,
             dropListValue: this.dropListValue,
             pregenVisibility: !["reputation", "infiltration", "research", "chases"].includes(this.dropListValue) ? 'hidden' : 'visible',
@@ -38,7 +38,7 @@ class SubSystemForm extends FormApplication {
     }
 
     static get defaultOptions() {
-        return mergeObject(super.defaultOptions, {
+        return foundry.utils.mergeObject(super.defaultOptions, {
             title: "Subsystems Config",
             id: `${moduleName}-configure`,
             classes: [moduleName],
@@ -61,7 +61,8 @@ class SubSystemForm extends FormApplication {
               obj[element] = values[index];
             });
         }
-        await this.saveSubsystemData(obj)
+        await this.saveSubsystemData(obj);
+        this.callback.call(this);
     }
 
     async close(options) {
@@ -177,7 +178,7 @@ Hooks.on('getPartySheetPF2eHeaderButtons', function(app, buttons) {
         class: `${moduleName}-sub-system`,
         onclick: () => {
             (new SubSystemForm({actor:app.actor}, async () => {
-                app.render(true, { tab: "sub-system" })
+                setTimeout(() => {  app.render(true, { tab: "sub-system" }) }, 0);
             })).render(true);
         }
     });
