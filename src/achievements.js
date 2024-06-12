@@ -6,12 +6,12 @@ class AchievementForm extends FormApplication {
     }
 
     getData() {
-        return mergeObject(super.getData(), {
+        return foundry.utils.mergeObject(super.getData(), {
         });
     }
 
     static get defaultOptions() {
-        return mergeObject(super.defaultOptions, {
+        return foundry.utils.mergeObject(super.defaultOptions, {
             title: "Achievements Config",
             id: `${moduleName}-achievements-configure`,
             classes: [moduleName],
