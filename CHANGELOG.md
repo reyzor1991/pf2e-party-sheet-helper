@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.1.1
+- Add few pregen for Reputation
+
 ## Version 0.1.0
 - Fix rendering party sheet
 
