@@ -99,6 +99,9 @@ class SubSystemForm extends FormApplication {
                         <h3>Adventures</h3>
                             <select id="map">
                             <option value=0>Blood Lords</option>
+                            <option value=1>Seven Dooms for Sandpoint</option>
+                            <option value=2>Season of Ghosts</option>
+                            <option value=3>Sky Kings Tomb</option>
                         </select><hr>
                     `,
                     buttons: {
@@ -122,6 +125,25 @@ class SubSystemForm extends FormApplication {
                     this.subsystemData["Export Guild"] ??= 0;
                     this.subsystemData["Reanimators"] ??= 0;
                     this.subsystemData["Tax Collectors Union"] ??= 0;
+
+                    this.render(true);
+                } else if (map === 1) {
+                    this.subsystemData["Bunyip Club"] ??= 0;
+                    this.subsystemData["Runewatchers"] ??= 0;
+                    this.subsystemData["Sandpoint Cathedral"] ??= 0;
+                    this.subsystemData["Sandpoint Mercantile League"] ??= 0;
+                    this.subsystemData["Scarnetti Consortium"] ??= 0;
+                    this.subsystemData["Town Watch"] ??= 0;
+                    this.subsystemData["Townsfolk"] ??= 0;
+
+                    this.render(true);
+                } else if (map === 2) {
+                    this.subsystemData["Northridge"] ??= 0;
+                    this.subsystemData["Southbank"] ??= 0;
+
+                    this.render(true);
+                } else if (map === 3) {
+                    this.subsystemData["Highhelm"] ??= 0;
 
                     this.render(true);
                 }
