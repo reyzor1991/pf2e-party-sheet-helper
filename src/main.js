@@ -243,6 +243,13 @@ Hooks.on('init', function(partySheet, html, data) {
         default: false,
         type: Boolean,
     });
+    game.settings.register(moduleName, "showAfflictions", {
+        name: "Show afflictions",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
     game.settings.register(moduleName, "showEffects", {
         name: "Show effects",
         scope: "world",

@@ -1,6 +1,9 @@
 # Changelog
 
 ## Version 0.1.1
+- Add Affliction section
+
+## Version 0.1.1
 - Add few pregen for Reputation
 
 ## Version 0.1.0
