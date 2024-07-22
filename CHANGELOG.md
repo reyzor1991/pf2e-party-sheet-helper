@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.1.3
+- Show all available affliction
+
 ## Version 0.1.1
 - Add Affliction section
 

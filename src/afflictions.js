@@ -3,7 +3,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     if (!game.settings.get(moduleName, "showAfflictions")) {return}
 
     let actors = game.actors.party.members.map(a=>{
-        let affs = a.itemTypes.effect.filter(e=>e.flags['pseudo-afflictions']).map(aff=>{
+        let affs = a.itemTypes.effect.filter(e=>e.flags['pseudo-afflictions'] || e.name?.includes('Affliction')).map(aff=>{
 
             let total = "-";
             let stage = "-";
