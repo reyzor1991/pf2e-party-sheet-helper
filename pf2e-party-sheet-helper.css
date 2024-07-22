@@ -295,3 +295,7 @@
 .sheet.party [data-tab=afflictions] .member .effects .col {
   flex: 1;
 }
+
+.sheet.party [data-tab=afflictions] .member .effects .col img{
+    max-width: 65px;
+}
