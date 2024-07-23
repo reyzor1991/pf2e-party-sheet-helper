@@ -299,3 +299,7 @@
 .sheet.party [data-tab=afflictions] .member .effects .col img{
     max-width: 65px;
 }
+
+#sub-skills tr > td {
+    text-align: center;
+}
