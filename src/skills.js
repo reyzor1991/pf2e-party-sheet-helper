@@ -7,7 +7,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
         .map(d=>{
             let label = d.label === "perception"
                 ? game.i18n.localize("PF2E.PerceptionLabel")
-                : game.i18n.localize("PF2E.Skill"+d.label.titleCase())
+                : game.i18n.localize("PF2E.Skill."+d.label.titleCase())
 
             return `<tr>
                 <td>${d.name}</td>

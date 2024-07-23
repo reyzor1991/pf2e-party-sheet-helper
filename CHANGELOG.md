@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.1.5
+- Fix skill tab labels
+
 ## Version 0.1.4
 - Fix sharing loot (v12)
 
