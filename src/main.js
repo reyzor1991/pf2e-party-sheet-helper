@@ -839,7 +839,7 @@ Hooks.on('renderActorSheetPF2e', function(sheet, html, data) {
 
     html.find('.sheet-content').find('.wealth').append('<a class="show-party-members" title="Party Members" style=""><i class="fa-solid fa-address-card"></i></a>')
     const members = [...partyActors, ...parties].map(a=>`<li class="box "><div class="actor-link content" data-actor-uuid="${a.uuid}" data-action="open-sheet" data-tab="inventory"><img src="${a.getActiveTokens(false, true)[0]?.texture?.src ?? a.img}" data-tooltip="${a.name}"></div><div class="footer"><i class="fa-solid fa-weight-hanging"></i> ${toBulk(a.inventory.bulk.value)}/${a?.isOfType('party') ? '∞' : a.inventory.bulk.encumberedAfter + 'B'}</div></li>`).join('');
-    const memberList = `<section data-region="inventoryMembers"><ol class="box-list inventory-members" style="flex-direction: row; flex-wrap: wrap; justify-content: center;">${members}</ol></section>`
+    const memberList = `<form><section data-region="inventoryMembers"><ol class="box-list inventory-members" style="flex-direction: row; flex-wrap: wrap; justify-content: center;">${members}</ol></section><form>`
     html.find('.sheet-content').find('.coinage').append(`<div class="sidebar-party-members" style="display: ${sheet.actor.getFlag(moduleName, 'partySharingDisplay') ?? 'none'}">${memberList}</aside>`);
 
     $(html.find('.show-party-members')).on("click", async function(el) {
@@ -886,13 +886,11 @@ Hooks.on("ready", () => {
             if (!item) return [];
             const actorUuid = foundry.utils.parseUuid(targetActor).documentId;
             if (actorUuid && item?.actor && item?.isOfType("physical")) {
-                const qty = item.quantity
-                if (qty < 1) return
-                if (qty === 1) return sendItemToActor(item.actor?.id, actorUuid, item.id, 1, false)
-
-                new MoveLootPopup(origin, { max: qty, lockStack: false, isPurchase: false }, (qty, stack) => {
-                    sendItemToActor(item.actor?.id, actorUuid, item.id, qty, stack)
-                }).render(true)
+                const result = await new MoveLootPopup(item, {}).resolve()
+                if (result) {
+                    sendItemToActor(item.actor?.id, actorUuid, item.id, result.quantity, result.newStack)
+                }
+                return []
             }
         }
 
@@ -905,24 +903,36 @@ function hasPermissions(item) {
 }
 
 class MoveLootPopup extends FormApplication {
-    constructor(object, options, callback) {
+    #resolve = null;
+
+    constructor(object, options) {
         super(object, options)
-        this.onSubmitCallback = callback
+    }
+
+    async resolve() {
+        if (this.object.quantity <= 1) {
+            return {
+                quantity: this.object.quantity,
+                newStack: false,
+            };
+        }
+
+        this.render(true);
+        return new Promise((resolve) => {
+            this.#resolve = resolve;
+        });
     }
 
     async getData() {
-        const [prompt, buttonLabel] = this.options.isPurchase
-            ? ['PF2E.loot.PurchaseLootMessage', 'PF2E.loot.PurchaseLoot']
-            : ['PF2E.loot.MoveLootMessage', 'PF2E.loot.MoveLoot']
-
+        const [prompt, buttonLabel] = ['PF2E.loot.MoveLootMessage', 'PF2E.loot.MoveLoot']
         return {
             ...(await super.getData()),
             quantity: {
-                default: this.options.max,
-                max: this.options.max,
+                default: this.object.quantity,
+                max: this.object.quantity,
             },
-            newStack: this.options.newStack,
-            lockStack: this.options.lockStack,
+            newStack: false,
+            lockStack: false,
             prompt,
             buttonLabel,
         }
@@ -934,7 +944,7 @@ class MoveLootPopup extends FormApplication {
             id: 'MoveLootPopup',
             classes: [],
             title: game.i18n.localize('PF2E.loot.MoveLootPopupTitle'),
-            template: 'systems/pf2e/templates/popups/loot/move-loot-popup.hbs',
+            template: `modules/${moduleName}/templates/move-loot.hbs`,
             width: 'auto',
             quantity: {
                 default: 1,
@@ -947,7 +957,16 @@ class MoveLootPopup extends FormApplication {
     }
 
     async _updateObject(_event, formData) {
-        this.onSubmitCallback(formData.quantity, formData.newStack)
+        this.#resolve?.({
+            quantity: formData.quantity ?? 1,
+            newStack: formData.newStack,
+        });
+        this.resolve = null;
+    }
+
+    async close(options) {
+        this.#resolve?.(null);
+        return super.close(options);
     }
 }
 
