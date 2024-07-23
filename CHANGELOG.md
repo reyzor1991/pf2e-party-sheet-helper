@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.1.4
+- Fix sharing loot (v12)
+
 ## Version 0.1.3
 - Show all available affliction
 
