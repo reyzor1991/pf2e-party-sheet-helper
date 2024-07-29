@@ -35,7 +35,7 @@ class AchievementForm extends FormApplication {
 
         this.actor.setFlag(moduleName, "achievements", data)
     }
-};
+}
 
 Hooks.on('getPartySheetPF2eHeaderButtons', function(partySheet, buttons) {
     if (!isGM()) {return;}

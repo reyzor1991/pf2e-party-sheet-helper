@@ -112,7 +112,7 @@ function healthStatuses() {
     }
 
     return [];
-};
+}
 
 function calculateColor(percent) {
     if (percent === 0 || isNaN(percent)) return gradient[0][1];
@@ -143,10 +143,9 @@ function calculateColor(percent) {
 function pickHex(color1, color2, weight) {
     const w1 = weight;
     const w2 = 1 - w1;
-    const rgb = [Math.round(color1[0] * w1 + color2[0] * w2),
+    return [Math.round(color1[0] * w1 + color2[0] * w2),
         Math.round(color1[1] * w1 + color2[1] * w2),
         Math.round(color1[2] * w1 + color2[2] * w2)];
-    return rgb;
 }
 
 function healthEstimateForActor(actor, html, statuses) {
@@ -161,7 +160,7 @@ function healthEstimateForActor(actor, html, statuses) {
         label = statuses[statuses.length-1].label
     } else {
         label = statuses.find((e) => percent <= e.percent.to && percent>= e.percent.from)?.label ?? 'Undefined';
-    };
+    }
 
     const overHpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar:not(.stamina-bar)');
     const expHpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.health-bar:not(.stamina-bar)');
@@ -191,9 +190,9 @@ function healthEstimateForActor(actor, html, statuses) {
             expSpBar.attr("data-tooltip", label)
         }
     }
-};
+}
 
-Hooks.on('init', function(partySheet, html, data) {
+Hooks.on('init', function() {
     game.settings.register(moduleName, "healthStatus", {
         name: "Health status at party sheet",
         scope: "world",
@@ -344,7 +343,7 @@ Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
     if (!token?.actor?.isOfType("party")) return;
 
     const clownCar = html.find('.control-icon[data-action="clown-car"]');
-    if (clownCar.length === 0) {return};
+    if (clownCar.length === 0) {return}
     clownCar.addClass("hidden");
 
     const { actor, scene } = token;
@@ -424,7 +423,7 @@ async function zScatterDepositTokens(token, actor, scene) {
     canvas.tokens.hud.render();
 }
 
-Hooks.on('renderSidebarTab', function(tab, html, data) {
+Hooks.on('renderSidebarTab', function(tab, html) {
     if (!isGM()) { return; }
     if (tab.id != 'actors') {return;}
 
@@ -581,7 +580,7 @@ function addStamina(partySheet, html) {
     });
 }
 
-Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
+Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     html.find('.skills > .tag-light').click(async (event) => {
         handleSkillRoll(event, partySheet)
     })
@@ -594,7 +593,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
                 healthEstimateForActor(actor, html, statuses);
             });
         }
-    };
+    }
 
     let showEffects = game.settings.get(moduleName, "showEffects");
     let showFocus = game.settings.get(moduleName, "showFocus");
@@ -730,7 +729,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
                             const weeks = Math.floor(totalMinutes / minutesPerWeek);
                             const days = Math.floor((totalMinutes - weeks * minutesPerWeek) / minutesPerDay);
                             const hours = Math.floor((totalMinutes - weeks * minutesPerWeek - days * minutesPerDay) / 60);
-                            const minutes = totalMinutes - weeks * minutesPerWeek - days * minutesPerDay - hours * 60;;
+                            const minutes = totalMinutes - weeks * minutesPerWeek - days * minutesPerDay - hours * 60;
 
                             const message = `${weeks ? 'Weeks ' + weeks + ' ' : ''}${days ? 'Days ' + days + ' ' : ''}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
@@ -970,7 +969,7 @@ class MoveLootPopup extends FormApplication {
     }
 }
 
-Hooks.on('createItem',  (item, data) => {
+Hooks.on('createItem',  (item) => {
     if (!item?.actor) {return}
     if (!item?.actor?.isOfType("party")) {return}
     let max = game.settings.get(moduleName, "maxEncumbrance");
@@ -993,7 +992,7 @@ Hooks.on('updateItem',  (item, data) => {
     }
 });
 
-Hooks.on('preCreateItem', (item, data) => {
+Hooks.on('preCreateItem', (item) => {
     if (!item?.actor) {return}
     if (!item?.actor?.isOfType("party")) {return}
     let max = game.settings.get(moduleName, "maxEncumbrance");

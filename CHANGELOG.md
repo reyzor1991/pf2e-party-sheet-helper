@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.1.6
+- Add Stealth to Skills tab
+
 ## Version 0.1.5
 - Fix skill tab labels
 

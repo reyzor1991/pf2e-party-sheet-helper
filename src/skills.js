@@ -1,10 +1,10 @@
 Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     if (!game.settings.get(moduleName, "skills") || !isGM()) {return}
 
-    let data = partySheet.actor.getFlag(moduleName, "skills") ?? [];
+    let data = deepClone(partySheet.actor.getFlag(moduleName, "skills") ?? {});
 
-    let values = Object.values(data)
-        .map(d=>{
+    let values = Object.entries(data)
+        .map(([key, d])=>{
             let label = d.label === "perception"
                 ? game.i18n.localize("PF2E.PerceptionLabel")
                 : game.i18n.localize("PF2E.Skill."+d.label.titleCase())
@@ -15,7 +15,8 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
                 <td>${d.proficiency.titleCase()}</td>
                 <td>${d.value}</td>
                 <td>${new Date(d.timestamp).toLocaleString()}</td>
-                <td data-id=${d.id} class="link-to-message"><i class="fas fa-comments"></i></td>
+                <td data-id="${d.id}" class="link-to-message"><i class="fas fa-comments"></i></td>
+                <td data-key="${key}" class="delete-row"><i class="fas fa-close"></i></td>
             </tr>`
         })
         .join('')
@@ -41,6 +42,9 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     $( ".link-to-message" ).on( "click", function() {
         $(document).find(`#chat-log li[data-message-id="${this?.dataset?.id}"]`)[0]?.scrollIntoView({ block: "start" });
     } );
+    $( ".delete-row" ).on( "click", async function() {
+        await game.actors.party.unsetFlag('pf2e-party-sheet-helper', `skills.${this?.dataset?.key}`)
+    } );
 
 });
 
@@ -51,6 +55,7 @@ Hooks.on("createChatMessage", async (message) => {
     if (
         !message.flags?.pf2e?.context?.domains?.includes('deception-check')
         && !message.flags?.pf2e?.context?.domains?.includes('perception-check')
+        && !message.flags?.pf2e?.context?.domains?.includes('stealth-check')
     ) {return}
 
     let value = Number.isNumeric(message.content) ? Number(message.content) : 0;
