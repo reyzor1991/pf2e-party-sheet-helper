@@ -21,7 +21,7 @@ Hooks.on('renderCharacterSheetPF2e', function(sheet, html) {
 });
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
-    if (!isGM()) {return;}
+    if (!game.user.isGM) {return;}
 
     let partyHP = partySheet.actor.getFlag(moduleName, 'heropoints') ?? {max:0, value:0};
 

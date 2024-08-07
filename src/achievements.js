@@ -38,7 +38,7 @@ class AchievementForm extends FormApplication {
 }
 
 Hooks.on('getPartySheetPF2eHeaderButtons', function(partySheet, buttons) {
-    if (!isGM()) {return;}
+    if (!game.user.isGM) {return;}
     buttons.unshift({
         label: "Achievements",
         icon: "fa fa-trophy",
@@ -53,7 +53,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     if (!game.settings.get(moduleName, "showAchievements")) {return}
 
     let data = partySheet.actor.getFlag(moduleName, "achievements") ?? [];
-    let content = data.sort((a,b) => a.text.localeCompare(b.text)).map((a,idx)=>`<div class="portrait" data-tooltip="${a.text}" data-index=${idx}>${isGM()?'<i class="fas fa-times close"></i>' : ''}<img src="${a.img}"><label>${a.text}</label></div>`).join("")
+    let content = data.sort((a,b) => a.text.localeCompare(b.text)).map((a,idx)=>`<div class="portrait" data-tooltip="${a.text}" data-index=${idx}>${game.user.isGM?'<i class="fas fa-times close"></i>' : ''}<img src="${a.img}"><label>${a.text}</label></div>`).join("")
 
     html.find('.sub-nav').append('<a data-tab="achievements" class="">Achievements</a>');
     html.find('.container').append(`<div class="tab" data-tab="achievements" data-region="achievements"><div class="achievements content">${content}</div></div>`);

@@ -192,7 +192,7 @@ class SubSystemForm extends FormApplication {
 };
 
 Hooks.on('getPartySheetPF2eHeaderButtons', function(app, buttons) {
-    if (!isGM()) {return;}
+    if (!game.user.isGM) {return;}
 
     buttons.unshift({
         label: "Subsystems",
@@ -207,7 +207,7 @@ Hooks.on('getPartySheetPF2eHeaderButtons', function(app, buttons) {
 });
 
 Hooks.on('renderLootSheetPF2e', function(partySheet, html, data) {
-    if (!(isGM() || game.settings.get(moduleName, "showPrintPC"))) {return}
+    if (!(game.user.isGM || game.settings.get(moduleName, "showPrintPC"))) {return}
     html.find('.content').find('.inventory').find('.currency').append(`<li><button type="button" class="print-inv" data-tooltip="Print Inventory"><i class="fas fa-print"></i></button></li>`)
     html.find('.content').find('.inventory').find('.currency').find('.print-inv').on("click", async function(event) {
         let tab = window.open('about:blank', '_blank');
@@ -221,7 +221,7 @@ Hooks.on('renderLootSheetPF2e', function(partySheet, html, data) {
 });
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
-    if (!(isGM() || game.settings.get(moduleName, "showPrintPC"))) {return}
+    if (!(game.user.isGM || game.settings.get(moduleName, "showPrintPC"))) {return}
     html.find('.container').find('.inventory').find('.currency').append(`<li><button type="button" class="print-inv" data-tooltip="Print Inventory"><i class="fas fa-print"></i></button></li>`)
     html.find('.container').find('.inventory').find('.currency').find('.print-inv').on("click", async function(event) {
         let tab = window.open('about:blank', '_blank');
@@ -235,7 +235,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
 });
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
-    if (!isGM() && !game.settings.get(moduleName, "showSubsystem")) {return}
+    if (!game.user.isGM && !game.settings.get(moduleName, "showSubsystem")) {return}
 
     const content = `
         <section class="tab sidebar-tab directory flexcol subsystem-section">
