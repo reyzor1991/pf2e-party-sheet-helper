@@ -24,7 +24,7 @@ const setupSocket = () => {
 }
 
 function isGM() {
-    return game.user.isGM && game.users.activeGM === game.user;
+    return game.users.activeGM === game.user;
 }
 
 async function sendItemToActor(ownerId, targetId, itemId, qty, stack) {
@@ -164,7 +164,7 @@ function healthEstimateForActor(actor, html, statuses) {
 
     const overHpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar:not(.stamina-bar)');
     const expHpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.health-bar:not(.stamina-bar)');
-    if (!isGM()) {
+    if (!game.user.isGM) {
         overHpBar.find('span').text(`${label}`);
         overHpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
 
@@ -179,7 +179,7 @@ function healthEstimateForActor(actor, html, statuses) {
 
         const expSpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.stamina-bar');
         const overSpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.stamina-bar');
-        if (!isGM()) {
+        if (!game.user.isGM) {
             overSpBar.find('span').text(`${label}`);
             overSpBar.find('.bar').css({'background-color': `rgb(${color[0]},${color[1]},${color[2]})`});
 
@@ -424,8 +424,8 @@ async function zScatterDepositTokens(token, actor, scene) {
 }
 
 Hooks.on('renderSidebarTab', function(tab, html) {
-    if (!isGM()) { return; }
-    if (tab.id != 'actors') {return;}
+    if (!game.user.isGM) { return; }
+    if (tab.id !== 'actors') {return;}
 
     const header = html.find('.directory-list').find('.party-list').find('header');
     if (!header.length) {return}
@@ -612,7 +612,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
 
             if ($(element).find('.elements').length === 0) {
                 let baseEff = [...actor.itemTypes.condition, ...actor.itemTypes.effect];
-                if (!isGM()) {
+                if (!game.user.isGM) {
                     baseEff = baseEff.filter(a=>a.isIdentified);
                 }
                 const span = baseEff.map(a=>{
@@ -670,7 +670,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
         }
     }
 
-    if (game.settings.get(moduleName, "hideWealthFromPC") && !isGM()) {
+    if (game.settings.get(moduleName, "hideWealthFromPC") && !game.user.isGM) {
         html.find('.inventory-members').find('.sub-data > .value').addClass("hidden");
 
         $(html.find('.inventory-members').find('.summary-data').children()[1]).css({ display: "none" })
@@ -898,7 +898,7 @@ Hooks.on("ready", () => {
 });
 
 function hasPermissions(item) {
-    return 3 === item?.ownership[game.user.id] || isGM();
+    return 3 === item?.ownership[game.user.id] || game.user.isGM;
 }
 
 class MoveLootPopup extends FormApplication {

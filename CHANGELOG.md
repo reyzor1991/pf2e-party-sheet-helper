@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.1.7
+- Fixes
+
 ## Version 0.1.6
 - Add Stealth to Skills tab
 

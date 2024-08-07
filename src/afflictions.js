@@ -1,5 +1,5 @@
 Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
-    if (!isGM()) {return;}
+    if (!game.user.isGM) {return;}
     if (!game.settings.get(moduleName, "showAfflictions")) {return}
 
     let actors = game.actors.party.members.map(a=>{
