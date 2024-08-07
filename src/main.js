@@ -24,7 +24,7 @@ const setupSocket = () => {
 }
 
 function isGM() {
-    return game.user.isGM;
+    return game.user.isGM && game.users.activeGM === game.user;
 }
 
 async function sendItemToActor(ownerId, targetId, itemId, qty, stack) {
