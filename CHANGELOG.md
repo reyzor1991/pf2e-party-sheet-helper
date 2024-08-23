@@ -1,6 +1,9 @@
 # Changelog
 
 ## Version 0.1.7
+- Fix language
+
+## Version 0.1.7
 - Fixes
 
 ## Version 0.1.6
