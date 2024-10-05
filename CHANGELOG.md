@@ -1,6 +1,9 @@
 # Changelog
 
-## Version 0.1.7
+## Version 0.1.9
+- Add description to achievements
+
+## Version 0.1.8
 - Fix language
 
 ## Version 0.1.7
