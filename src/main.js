@@ -242,6 +242,13 @@ Hooks.on('init', function() {
         default: false,
         type: Boolean,
     });
+    game.settings.register(moduleName, "showEncounterData", {
+        name: "Show encounter base info",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
     game.settings.register(moduleName, "showAfflictions", {
         name: "Show afflictions",
         scope: "world",
