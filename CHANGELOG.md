@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.1.11
+- Add setting - Use feet as default value - for calculate speed (easy mod)
+
 ## Version 0.1.10
 - Add achievements per PC
 
