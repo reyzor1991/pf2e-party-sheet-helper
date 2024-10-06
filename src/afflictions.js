@@ -48,6 +48,6 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     }).join('');
 
 
-    html.find('.sub-nav').append('<a data-tab="afflictions" class="">Afflictions</a>');
+    html.find('.sub-nav:not(.sub-sub-nav)').append('<a data-tab="afflictions" class="">Afflictions</a>');
     html.find('.container').append(`<div class="tab" data-tab="afflictions" data-region="afflictions"><div class="afflictions content">${actors}</div></div>`);
 });

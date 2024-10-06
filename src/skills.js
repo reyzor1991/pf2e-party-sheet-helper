@@ -36,7 +36,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
         </section>
     `
 
-    html.find('.sub-nav').append('<a data-tab="skills" class="">Skills</a>')
+    html.find('.sub-nav:not(.sub-sub-nav)').append('<a data-tab="skills" class="">Skills</a>')
     html.find('.container').append(`<div class="tab" data-tab="skills" data-region="skills"><div class="content">${content}</div></div>`)
 
     $( ".link-to-message" ).on( "click", function() {

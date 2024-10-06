@@ -14,6 +14,13 @@
             <input class="image" type="text" name="texture.src" placeholder="path/image.png" value="{{object.texture.src}}" />
         </div>
     </div>
+    <div class="form-group">
+        <label>Party/Player</label>
+        <multi-select name="owner">
+            {{ selectOptions pcs }}
+        </multi-select>
+    </div>
+
     <div class="form-group buttons">
         <button type="submit" name="submit">
             <i class="far fa-save"></i> Save
