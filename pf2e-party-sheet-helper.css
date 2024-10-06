@@ -171,6 +171,10 @@
     display: flow;
 }
 
+.sheet.party [data-tab=achievements] {
+    flex-direction: column;
+}
+
 .party .container .achievements.content {
 
     flex-direction: row;

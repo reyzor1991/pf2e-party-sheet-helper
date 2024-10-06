@@ -245,7 +245,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html, data) {
         </section>
     `
 
-    html.find('.sub-nav').append('<a data-tab="sub-system" class="">Subsystems</a>')
+    html.find('.sub-nav:not(.sub-sub-nav)').append('<a data-tab="sub-system" class="">Subsystems</a>')
     html.find('.container').append(`<div class="tab" data-tab="sub-system" data-region="sub-system"><div class="content">${content}</div></div>`)
 
     html.find('.container').find('.subsystem-list').find('.directory-item').on("click", async function(event) {

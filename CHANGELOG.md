@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.1.10
+- Add achievements per PC
+
 ## Version 0.1.9
 - Add description to achievements
 
