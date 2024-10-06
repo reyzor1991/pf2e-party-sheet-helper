@@ -1,6 +1,7 @@
 .subsystem-list > li.folder:not(.collapsed) > .folder-header {
     background: rgb(74 119 68 / 74%);
 }
+
 .subsystem-list > li.folder.collapsed > .folder-header {
     background: rgb(20 68 14);
 }
@@ -108,7 +109,7 @@
     overflow: hidden;
 }
 
-.sidebar-party-members .box .footer .fa-weight-hanging{
+.sidebar-party-members .box .footer .fa-weight-hanging {
     padding-left: 0.3rem;
 }
 
@@ -270,6 +271,7 @@
     min-width: 5.5rem;
     flex: 1;
 }
+
 .sheet.party [data-tab=afflictions] .member > .data {
     flex: 4;
 }
@@ -293,17 +295,146 @@
 }
 
 .sheet.party [data-tab=afflictions] .member .effects {
-  flex-wrap: wrap;
+    flex-wrap: wrap;
 }
 
 .sheet.party [data-tab=afflictions] .member .effects .col {
-  flex: 1;
+    flex: 1;
 }
 
-.sheet.party [data-tab=afflictions] .member .effects .col img{
+.sheet.party [data-tab=afflictions] .member .effects .col img {
     max-width: 65px;
 }
 
 #sub-skills tr > td {
     text-align: center;
 }
+
+.sheet.party [data-tab=encounter] {
+    .content {
+        padding-top: 0.5rem;
+        padding-bottom: 0.25rem;
+    }
+
+    .skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+
+        .tag-light {
+            &[data-rank="1"] {
+                --tag-color: var(--color-proficiency-trained);
+            }
+
+            &[data-rank="2"] {
+                --tag-color: var(--color-proficiency-expert);
+            }
+
+            &[data-rank="3"] {
+                --tag-color: var(--color-proficiency-master);
+            }
+
+            &[data-rank="4"] {
+                --tag-color: var(--color-proficiency-legendary);
+            }
+        }
+    }
+
+    .member {
+        display: flex;
+        flex-direction: row;
+        font-family: var(--sans-serif);
+        padding: 0.5rem 1rem;
+        position: relative;
+        height: 9.375rem;
+
+        &:not(:last-child):after {
+            content: "";
+            background-color: rgba(68, 55, 48, 0.1);
+            width: 100%;
+            height: 1px;
+            position: absolute;
+            bottom: 0;
+        }
+
+        > .portrait {
+            margin-right: 8px;
+            min-width: 7.5rem;
+            position: relative;
+
+            img {
+                border: none;
+                max-width: 7rem;
+                max-height: 7rem;
+            }
+        }
+
+        > .data {
+            width: 100%;
+
+            .main-stats {
+                display: flex;
+                gap: 0.5rem;
+                margin: 0.125rem 0 0.25rem 0;
+
+                & > section {
+                    border: 1px solid var(--color-border);
+                    border-radius: 2px;
+                    height: 2.625rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex: 1 1 0;
+                }
+
+                .score {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: var(--font-size-18);
+
+                    label {
+                        font-size: var(--font-size-10);
+                        font-weight: 500;
+                    }
+
+                    label.small {
+                        font-size: var(--font-size-8);
+                        font-weight: 500;
+                    }
+                }
+
+                .ac {
+                    text-align: center;
+                    border: none;
+                    position: relative;
+                    flex: 0 0 2.25rem;
+
+                    &::before {
+                        content: " ";
+                        position: absolute;
+                        inset: 0;
+                        background: url("../../systems/pf2e/assets/sheet/shield-clear.svg") no-repeat center center;
+                        background-size: contain;
+                    }
+
+                    .value {
+                        color: var(--color-proficiency-trained);
+                        font-weight: 700;
+                    }
+                }
+
+                .saving-throws {
+                    flex: 0 0 9.5rem;
+
+                    .score {
+                        flex: 1;
+                        font-weight: 500;
+                    }
+                }
+            }
+        }
+    }
+}
+
