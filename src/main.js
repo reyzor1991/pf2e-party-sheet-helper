@@ -335,6 +335,14 @@ Hooks.on('init', function() {
         default: 0,
         type: Number,
     });
+    game.settings.register(moduleName, "defaultCalculatorValue", {
+        name: "Use feet as default value",
+        hint: 'for calculate speed (easy mod)',
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean,
+    });
 });
 
 Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
@@ -698,6 +706,13 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
         if (members.length > 0) {
             let speed = Math.min(...members.map(m=>m.attributes.speed.total));
 
+
+            let options = game.settings.get(moduleName, "defaultCalculatorValue")
+                ? `<option value="feet" selected>Feet</option>
+                                <option value="miles" >Miles</option>`
+                : `<option value="feet">Feet</option>
+                            <option value="miles" selected>Miles</option>`
+
             new Dialog({
                 title: "Calculator",
                 content: `<form><div class="form-group travel-duration">
@@ -708,8 +723,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
                         <label>Distance</label>
                         <input name="distance" value="0" type="number" data-dtype="Number">
                         <select name="distanceUnit">
-                            <option value="feet">Feet</option>
-                            <option value="miles" selected>Miles</option>
+                           ${options}
                         </select>
                     </div>
                 </div></form>`,
