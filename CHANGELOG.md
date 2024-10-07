@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.2.0
+- Add polish lang
+
 ## Version 0.1.12
 - Add setting - show encounter data (AC, Saves, ClassDC, ClassDCOrSpellDC,skills)
 
