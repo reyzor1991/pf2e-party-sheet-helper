@@ -1,0 +1,17 @@
+{
+  "pf2e-party-sheet-helper": {
+    "subsystems": {
+      "reputation": {
+        "labels": {
+          "hunted": "Ścigany",
+          "hated": "Znienawidzony",
+          "disliked": "Nielubiany",
+          "ignored": "Ignorowany",
+          "liked": "Lubiany",
+          "admired": "Podziwiany",
+          "revered": "Ubóstwiany"
+        }
+      }
+    }
+  }
+}
