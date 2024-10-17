@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.2.1
+- Fix rendering tab
+
 ## Version 0.2.0
 - Add polish lang
 
