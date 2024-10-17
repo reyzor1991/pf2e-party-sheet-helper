@@ -115,10 +115,8 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
     html.find('.achievements .close').on("click", async function (event) {
         const target = $(event.currentTarget);
         const dataIdx = target.parent().data().index;
-        console.log(dataIdx);
 
         let data = partySheet.actor.getFlag(moduleName, "achievements") ?? [];
-        console.log(data);
         data.splice(dataIdx, 1);
 
         await partySheet.actor.setFlag(moduleName, "achievements", data);
@@ -129,7 +127,6 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
         if (current.hasClass('active')) {
             return
         }
-        console.log('222')
 
         current.closest('.sub-nav').find('a').removeClass('active');
         current.addClass('active');
@@ -140,7 +137,6 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
     })
 
     html.on('click', 'form > .sub-nav a[data-tab="achievements"]', (event)=>{
-        console.log('111')
         html.find(`a[data-tab="${partySheet.actor.id}"],div[data-tab="${partySheet.actor.id}"]`).addClass('active');
     })
 });
