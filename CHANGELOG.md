@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.2.2
+- Show subsystem tab (setting)
+
 ## Version 0.2.1
 - Fix rendering tab
 

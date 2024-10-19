@@ -193,6 +193,10 @@ class SubSystemForm extends FormApplication {
 };
 
 Hooks.on('getPartySheetPF2eHeaderButtons', function (app, buttons) {
+    if (!game.settings.get(moduleName, "enableSubsystem")) {
+        return;
+    }
+
     if (!game.user.isGM) {
         return;
     }
@@ -241,32 +245,34 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html, data) {
 
 
 Hooks.on('pf2e.systemReady', function () {
-    let or = CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner
-    CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner = async function (data, options) {
-        let html = await or.call(this, data, options);
-        if (game.user.isGM || game.settings.get(moduleName, "showSubsystem")) {
-            const content = `
+    if (game.settings.get(moduleName, "enableSubsystem")) {
+        let or = CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner
+        CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner = async function (data, options) {
+            let html = await or.call(this, data, options);
+            if (game.user.isGM || game.settings.get(moduleName, "showSubsystem")) {
+                const content = `
                 <section class="tab sidebar-tab directory flexcol subsystem-section">
                     <ol class="directory-list subsystem-list">
                         ${subSystemRows(this.object)}
                     </ol>
                 </section>`
 
-            html.find('.sub-nav:not(.sub-sub-nav)').append('<a data-tab="sub-system" class="">Subsystems</a>')
-            html.find('.container').append(`<div class="tab" data-tab="sub-system" data-region="sub-system"><div class="content">${content}</div></div>`)
+                html.find('.sub-nav:not(.sub-sub-nav)').append('<a data-tab="sub-system" class="">Subsystems</a>')
+                html.find('.container').append(`<div class="tab" data-tab="sub-system" data-region="sub-system"><div class="content">${content}</div></div>`)
 
-            html.find('.container').find('.subsystem-list').find('.directory-item').on("click", async function(event) {
-                event.preventDefault();
-                let target = $(event.currentTarget);
-                if (target.hasClass('collapsed')) {
-                      target.removeClass('collapsed')
-                } else {
-                      target.addClass('collapsed')
-                }
-            })
+                html.find('.container').find('.subsystem-list').find('.directory-item').on("click", async function (event) {
+                    event.preventDefault();
+                    let target = $(event.currentTarget);
+                    if (target.hasClass('collapsed')) {
+                        target.removeClass('collapsed')
+                    } else {
+                        target.addClass('collapsed')
+                    }
+                })
 
+            }
+            return html;
         }
-        return html;
     }
 });
 
@@ -398,6 +404,10 @@ let POINT_MAP = {
 const SUBSYSTEM_ACTION_REGEXP = new RegExp('action:(reputation|victory-points|influence|research|chases|infiltration)', '');
 
 Hooks.on("preCreateChatMessage", async (message) => {
+    if (!game.settings.get(moduleName, "enableSubsystem")) {
+        return
+    }
+
     if (message?.flags?.pf2e?.context?.type !== "skill-check") {
         return
     }
