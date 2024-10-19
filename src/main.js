@@ -228,6 +228,14 @@ Hooks.on('init', function() {
         default: false,
         type: Boolean,
     });
+    game.settings.register(moduleName, "enableSubsystem", {
+        name: "Enable subsystems",
+        scope: "world",
+        config: true,
+        default: false,
+        requiresReload: true,
+        type: Boolean,
+    });
     game.settings.register(moduleName, "showSubsystem", {
         name: "Show subsystems to PCs",
         scope: "world",
