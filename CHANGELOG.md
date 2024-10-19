@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.2.4
+- Edit achievements
+
 ## Version 0.2.3
 - Fix affliction tab
 

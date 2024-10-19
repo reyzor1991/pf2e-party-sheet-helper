@@ -243,7 +243,6 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html, data) {
     })
 });
 
-
 Hooks.on('pf2e.systemReady', function () {
     if (game.settings.get(moduleName, "enableSubsystem")) {
         let or = CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner
@@ -271,6 +270,14 @@ Hooks.on('pf2e.systemReady', function () {
                 })
 
             }
+
+            if (game.user.isGM && game.settings.get(moduleName, "showAfflictions")) {
+                htmlAffliction(this.actor, html);
+            }
+            if (game.settings.get(moduleName, "showAchievements")) {
+                htmlAchievements(this.actor, html);
+            }
+
             return html;
         }
     }

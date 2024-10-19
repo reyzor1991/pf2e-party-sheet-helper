@@ -205,6 +205,12 @@
         position: absolute;
         right: 0px;
     }
+
+    i.edit {
+        color: red;
+        position: absolute;
+        left: 0px;
+    }
 }
 
 .travel-duration .journey-calc {

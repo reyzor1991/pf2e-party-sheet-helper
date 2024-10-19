@@ -1,25 +1,26 @@
 <form>
     <div class="form-group">
         <label>Name</label>
-        <input name="name" type="text">
+        <input name="name" type="text" value="{{achievement.text}}">
     </div>
     <div class="form-group">
         <label>Description</label>
-        <input name="description" type="text">
+        <input name="description" type="text" value="{{achievement.description}}">
     </div>
     <div class="form-group">
         <label>Image</label>
         <div class="form-fields">
-            {{filePicker target="texture.src" type="imagevideo"}}
-            <input class="image" type="text" name="texture.src" placeholder="path/image.png" value="{{object.texture.src}}" />
+            <file-picker name="texture.src" value="{{achievement.img}}" type="imagevideo"></file-picker>
         </div>
     </div>
-    <div class="form-group">
-        <label>Party/Player</label>
-        <multi-select name="owner">
-            {{ selectOptions pcs }}
-        </multi-select>
-    </div>
+    {{#unless achievement}}
+        <div class="form-group">
+            <label>Party/Player</label>
+            <multi-select name="owner">
+                {{ selectOptions pcs }}
+            </multi-select>
+        </div>
+    {{/unless}}
 
     <div class="form-group buttons">
         <button type="submit" name="submit">
