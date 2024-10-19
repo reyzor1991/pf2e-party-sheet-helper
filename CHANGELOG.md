@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.2.3
+- Fix affliction tab
+
 ## Version 0.2.2
 - Show subsystem tab (setting)
 
