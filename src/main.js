@@ -248,6 +248,7 @@ Hooks.on('init', function() {
         scope: "world",
         config: true,
         default: false,
+        requiresReload: true,
         type: Boolean,
     });
     game.settings.register(moduleName, "showEncounterData", {
@@ -262,6 +263,7 @@ Hooks.on('init', function() {
         scope: "world",
         config: true,
         default: false,
+        requiresReload: true,
         type: Boolean,
     });
     game.settings.register(moduleName, "showEffects", {
