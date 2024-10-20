@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.2.5
+- Saving Throw templates (similar to skill)
+
 ## Version 0.2.4
 - Edit achievements
 
