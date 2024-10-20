@@ -243,7 +243,13 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html, data) {
     })
 });
 
+const SHORT_SAVES = {}
+
 Hooks.on('pf2e.systemReady', function () {
+    SHORT_SAVES[game.i18n.localize("PF2E.SavesFortitudeShort")] = 'fortitude'
+    SHORT_SAVES[game.i18n.localize("PF2E.SavesReflexShort")] = 'reflex'
+    SHORT_SAVES[game.i18n.localize("PF2E.SavesWillShort")] = 'will'
+
     if (game.settings.get(moduleName, "enableSubsystem")) {
         let or = CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner
         CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner = async function (data, options) {

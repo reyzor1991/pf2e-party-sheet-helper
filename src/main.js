@@ -589,6 +589,52 @@ async function handleSkillRoll(event, partySheet) {
     }
 }
 
+async function handleSaveRoll(event, partySheet) {
+    const saveText = $(event.currentTarget).find('label').text();
+    let save = SHORT_SAVES[saveText];
+    if (!save) {return}
+
+    const levels = partySheet.actor.members.map(a=>a.level)
+    const defDC = (dcByLevel.get(Math.round(levels.reduce((a, b) => a + b, 0)/levels.length)) ?? 50);
+
+    const isSecret = (event.ctrlKey || event.metaKey);
+
+
+    const { dc } = await Dialog.wait({
+        title:"DC of skill",
+        content: `
+            <h3>DC of check</h3>
+            <input id="skill-dc" type="number" min="0" value=${defDC} />
+        `,
+        buttons: {
+            ok: {
+                label: "Create DC Template",
+                icon: "<i class='fa-solid fa-magic'></i>",
+                callback: (html) => { return { dc: parseInt(html[0].querySelector("#skill-dc").value) } }
+            },
+            cancel: {
+                label: "Cancel",
+                icon: "<i class='fa-solid fa-ban'></i>",
+            }
+        },
+        default: "ok"
+    });
+    if (dc === undefined) { return; }
+
+    let secret = isSecret? '|traits:secret':''
+
+    const content = `@Check[type:${save}|dc:${dc}${secret}]{${save.capitalize()} Check}`
+    if (event.shiftKey) {
+        navigator.clipboard.writeText(content);
+        ui.notifications.info("Copied the text of check");
+    } else {
+        ChatMessage.create({
+            type: CONST.CHAT_MESSAGE_TYPES.OOC,
+            content
+        });
+    }
+}
+
 function addStamina(partySheet, html) {
     if (!game.settings.get("pf2e", "staminaVariant")) {return}
 
@@ -607,7 +653,10 @@ function addStamina(partySheet, html) {
 
 Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     html.find('.skills > .tag-light').click(async (event) => {
-        handleSkillRoll(event, partySheet)
+        await handleSkillRoll(event, partySheet)
+    })
+    html.find('section.saving-throws .score').click(async (event) => {
+        await handleSaveRoll(event, partySheet)
     })
     addStamina(partySheet, html)
 
