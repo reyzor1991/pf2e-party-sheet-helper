@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.2.6
+- Fix rendering tabs
+
 ## Version 0.2.5
 - Saving Throw templates (similar to skill)
 

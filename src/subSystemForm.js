@@ -276,15 +276,25 @@ Hooks.on('pf2e.systemReady', function () {
                 })
 
             }
-
-            if (game.user.isGM && game.settings.get(moduleName, "showAfflictions")) {
-                htmlAffliction(this.actor, html);
-            }
-            if (game.settings.get(moduleName, "showAchievements")) {
-                htmlAchievements(this.actor, html);
-            }
-
             return html;
+        }
+    }
+
+    if (game.user.isGM && game.settings.get(moduleName, "showAfflictions")) {
+        let or = CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner
+        CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner = async function (data, options) {
+            let html = await or.call(this, data, options);
+            htmlAffliction(this.actor, html);
+            return html
+        }
+    }
+
+    if (game.settings.get(moduleName, "showAchievements")) {
+        let or = CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner
+        CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner = async function (data, options) {
+            let html = await or.call(this, data, options);
+            htmlAchievements(this.actor, html);
+            return html
         }
     }
 });
