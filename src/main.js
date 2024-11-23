@@ -338,7 +338,7 @@ Hooks.on('init', function() {
     });
     game.settings.register(moduleName, "skills", {
         name: "Store last skills rolls for GM",
-        hint: 'Now only deception skills',
+        hint: 'Now only deception/perception/stealth skills',
         scope: "world",
         config: true,
         default: false,
@@ -714,7 +714,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
         if (showSpells) {
             let spells =  spellData(actor)
             if (spells.length > 0) {
-                $(element).find('.saving-throws').after(`<section class="spells-data"><label class="spells-text" data-tooltip="${spells.map(a=>`${a.rank} Rank - ${a.active}/${a.max}`).join('<br/>')}">Spells Info</label></section>`)
+                $(element).find('.saving-throws').after(`<section class="spells-data"><label class="spells-text" data-tooltip="${spells.map(a=>`${a.type} ${a.rank} Rank - ${a.active}/${a.max}`).join('<br/>')}">Spells Info</label></section>`)
             }
         }
     });
@@ -861,11 +861,12 @@ function spellData(actor) {
     let data = []
     let slotsEntry = actor.itemTypes.spellcastingEntry.filter(a=>a.isPrepared).map(a=>a?.system?.slots).filter(a=>a);
     slotsEntry.forEach(slots => {
-        let keys = Object.keys(slots).filter(a=>a!='slot0')
+        let keys = Object.keys(slots).filter(a=>a!=='slot0')
 
         keys.forEach(k=>{
             if (slots[k].max > 0) {
                 data.push({
+                    type: 'Prepared',
                     rank:  Number(k.substring(4)),
                     active: Object.values(slots[k].prepared).filter(a=>!a.expended).length,
                     max: slots[k].max
@@ -876,11 +877,12 @@ function spellData(actor) {
 
     let spontaneousEntry = actor.itemTypes.spellcastingEntry.filter(a=>a.isSpontaneous).map(a=>a?.system?.slots).filter(a=>a);
     spontaneousEntry.forEach(slots => {
-        let keys = Object.keys(slots).filter(a=>a!='slot0')
+        let keys = Object.keys(slots).filter(a=>a!=='slot0')
 
         keys.forEach(k=>{
             if (slots[k].max > 0) {
                 data.push({
+                    type: 'Spontaneous',
                     rank:  Number(k.substring(4)),
                     active: slots[k].value,
                     max: slots[k].max
@@ -893,8 +895,9 @@ function spellData(actor) {
     innateEntry.forEach(slots => {
         let spells = slots.spells.contents.map(a=>a.system.location);
         spells.forEach(k=>{
-            if (k.uses.max > 0) {
+            if (k.uses.max > 0 && k.heightenedLevel) {
                 data.push({
+                    type: 'Innate',
                     rank:  k.heightenedLevel,
                     active: k.uses.value,
                     max: k.uses.max
