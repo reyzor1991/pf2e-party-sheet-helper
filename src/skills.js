@@ -1,7 +1,7 @@
 Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     if (!game.settings.get(moduleName, "skills") || !game.user.isGM) {return}
 
-    let data = deepClone(partySheet.actor.getFlag(moduleName, "skills") ?? {});
+    let data = foundry.utils.deepClone(partySheet.actor.getFlag(moduleName, "skills") ?? {});
 
     let values = Object.entries(data)
         .map(([key, d])=>{

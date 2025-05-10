@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.3.0
+- V13
+
 ## Version 0.2.7
 - Fix naming spells ranks
 
