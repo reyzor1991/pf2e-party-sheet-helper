@@ -2,7 +2,7 @@
   "id": "pf2e-party-sheet-helper",
   "title": "PF2e Party Sheet Helper",
   "description": "PF2e Party Sheet Helper",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "authors": [
     {
       "name": "Reyzor",
@@ -33,11 +33,11 @@
   "packs": [],
   "media": [],
   "compatibility": {
-    "minimum": "11",
-    "verified": "12.331"
+    "minimum": "13.342",
+    "verified": "13.344"
   },
-  "manifest": "https://github.com/reyzor1991/pf2e-party-sheet-helper/releases/latest/download/module.json",
-  "download": "https://github.com/reyzor1991/pf2e-party-sheet-helper/releases/latest/download/pf2e-party-sheet-helper.zip",
+  "manifest": "https://github.com/reyzor1991/pf2e-party-sheet-helper/releases/download/0.3.0/module.json",
+  "download": "https://github.com/reyzor1991/pf2e-party-sheet-helper/releases/download/0.3.0/pf2e-party-sheet-helper.zip",
   "url": "https://github.com/reyzor1991/pf2e-party-sheet-helper",
   "readme": "https://github.com/reyzor1991/pf2e-party-sheet-helper/blob/master/README.md",
   "bugs": "https://github.com/reyzor1991/pf2e-party-sheet-helper/issues",
@@ -49,8 +49,8 @@
         "type": "system",
         "manifest": "https://github.com/foundryvtt/pf2e/releases/latest/download/system.json",
         "compatibility": {
-          "minimum": "5.4.0",
-          "verified": "6.0.1"
+          "minimum": "7.0.5",
+          "verified": "7.0.5"
         }
       }
     ],
