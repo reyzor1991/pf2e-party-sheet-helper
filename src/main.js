@@ -16,11 +16,11 @@ const SUBSYSTEM_TIERS_LABELS = {
 let socketlibSocket = undefined;
 
 const setupSocket = () => {
-  if (globalThis.socketlib) {
-      socketlibSocket = globalThis.socketlib.registerModule(moduleName);
-      socketlibSocket.register("sendItemToActor", sendItemToActor);
-  }
-  return !!globalThis.socketlib
+    if (globalThis.socketlib) {
+        socketlibSocket = globalThis.socketlib.registerModule(moduleName);
+        socketlibSocket.register("sendItemToActor", sendItemToActor);
+    }
+    return !!globalThis.socketlib
 }
 
 function isGM() {
@@ -46,7 +46,7 @@ async function sendItemToActor(ownerId, targetId, itemId, qty, stack) {
         type: CONST.CHAT_MESSAGE_TYPES.EMOTE,
         flavor: `<h4 class="action"><strong>Interact</strong><span class="action-glyph">A</span><span class="subtitle">(Give item)</span></h4><div class="tags"><span class="tag tooltipstered" data-slug="manipulate" data-description="PF2E.TraitDescriptionManipulate">Manipulate</span></div><hr class="action-divider">`,
         content: `<p class="action-content"><img src="${item.img}">${owner.name} gives ${qty} × ${item.name} to ${target.name}.</p>`,
-        speaker: ChatMessage.getSpeaker({ actor:  owner }),
+        speaker: ChatMessage.getSpeaker({actor: owner}),
     })
 }
 
@@ -93,21 +93,21 @@ const minutesPerDay = 24 * 60;
 const minutesPerWeek = minutesPerDay * 7;
 
 const gradient = [
-    [0,  [255,0,0]],
-    [50, [204,204,0]],
-    [100,[0,128,0]],
+    [0, [255, 0, 0]],
+    [50, [204, 204, 0]],
+    [100, [0, 128, 0]],
 ];
 const sliderWidth = 500;
 
 function healthStatuses() {
-    const list = game.settings.get(moduleName, "healthStatus").split(',').map(a=>a.trim());
+    const list = game.settings.get(moduleName, "healthStatus").split(',').map(a => a.trim());
     if (list.length >= 2) {
-        const perStage = Math.round(10000/(list.length-2))/100;
+        const perStage = Math.round(10000 / (list.length - 2)) / 100;
         const stages = [{label: list[0], percent: {from: 0, to: 0}}]
         stages.push(...list.slice(1, -1).map((el, idx) => {
-            return {label: el, percent: {from: idx*perStage, to: (idx+1)*perStage}};
+            return {label: el, percent: {from: idx * perStage, to: (idx + 1) * perStage}};
         }));
-        stages.push({label: list[list.length-1], percent: {from: 100, to: 100}})
+        stages.push({label: list[list.length - 1], percent: {from: 100, to: 100}})
         return stages;
     }
 
@@ -119,8 +119,8 @@ function calculateColor(percent) {
 
     let colorRange = []
     for (let i = 0; i < gradient.length; i++) {
-        if (percent<=gradient[i][0]) {
-            colorRange = [i-1, i]
+        if (percent <= gradient[i][0]) {
+            colorRange = [i - 1, i]
             break;
         }
     }
@@ -131,13 +131,13 @@ function calculateColor(percent) {
 
 
     //Calculate ratio between the two closest colors
-    const firstcolor_x = sliderWidth*(gradient[colorRange[0]][0]/100);
-    const secondcolor_x = sliderWidth*(gradient[colorRange[1]][0]/100)-firstcolor_x;
+    const firstcolor_x = sliderWidth * (gradient[colorRange[0]][0] / 100);
+    const secondcolor_x = sliderWidth * (gradient[colorRange[1]][0] / 100) - firstcolor_x;
 
-    const slider_x = sliderWidth*(percent/100)-firstcolor_x;
-    const ratio = slider_x/secondcolor_x
+    const slider_x = sliderWidth * (percent / 100) - firstcolor_x;
+    const ratio = slider_x / secondcolor_x
 
-    return pickHex( secondcolor,firstcolor, ratio );
+    return pickHex(secondcolor, firstcolor, ratio);
 }
 
 function pickHex(color1, color2, weight) {
@@ -150,16 +150,16 @@ function pickHex(color1, color2, weight) {
 
 function healthEstimateForActor(actor, html, statuses) {
     const percent = game.settings.get("pf2e", "staminaVariant")
-        ? ( (actor.system.attributes.hp.value + (actor.system.attributes.hp.sp?.value ?? 0) ) / (actor.system.attributes.hp.max + (actor.system.attributes.hp.sp?.max ?? 0))) * 100
+        ? ((actor.system.attributes.hp.value + (actor.system.attributes.hp.sp?.value ?? 0)) / (actor.system.attributes.hp.max + (actor.system.attributes.hp.sp?.max ?? 0))) * 100
         : (actor.system.attributes.hp.value / actor.system.attributes.hp.max) * 100;
     let color = calculateColor(percent);
     let label = '?';
-    if (percent === 0 ) {
+    if (percent === 0) {
         label = statuses[0].label
-    } else if (percent === 100 ) {
-        label = statuses[statuses.length-1].label
+    } else if (percent === 100) {
+        label = statuses[statuses.length - 1].label
     } else {
-        label = statuses.find((e) => percent <= e.percent.to && percent>= e.percent.from)?.label ?? 'Undefined';
+        label = statuses.find((e) => percent <= e.percent.to && percent >= e.percent.from)?.label ?? 'Undefined';
     }
 
     const overHpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar:not(.stamina-bar)');
@@ -192,7 +192,7 @@ function healthEstimateForActor(actor, html, statuses) {
     }
 }
 
-Hooks.on('init', function() {
+Hooks.on('init', function () {
     game.settings.register(moduleName, "healthStatus", {
         name: "Health status at party sheet",
         scope: "world",
@@ -334,7 +334,8 @@ Hooks.on('init', function() {
             "notadd": "Not add to stash"
         },
         default: "notify",
-        onChange: value => {}
+        onChange: value => {
+        }
     });
     game.settings.register(moduleName, "skills", {
         name: "Store last skills rolls for GM",
@@ -362,17 +363,19 @@ Hooks.on('init', function() {
     });
 });
 
-Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
+Hooks.on('renderTokenHUD', function (tokenHud, html, data) {
     if (!game.settings.get(moduleName, "useCircleClownCar")) return;
     const token = canvas.scene?.tokens.get(data._id ?? "")?.object;
     if (!token?.actor?.isOfType("party")) return;
 
     const clownCar = html.find('.control-icon[data-action="clown-car"]');
-    if (clownCar.length === 0) {return}
+    if (clownCar.length === 0) {
+        return
+    }
     clownCar.addClass("hidden");
 
-    const { actor, scene } = token;
-    const el = (()  => {
+    const {actor, scene} = token;
+    const el = (() => {
         const imgElement = document.createElement("img");
         imgElement.src = "systems/pf2e/icons/other/enter-exit.svg";
         const willRetrieve = actor.members.some((m) => m.getActiveTokens(true, true).length > 0);
@@ -431,7 +434,7 @@ Hooks.on('renderTokenHUD', function(tokenHud, html, data) {
         }
     });
 
-    $( newDiv ).insertBefore( clownCar );
+    $(newDiv).insertBefore(clownCar);
 })
 
 async function zScatterDepositTokens(token, actor, scene) {
@@ -448,84 +451,104 @@ async function zScatterDepositTokens(token, actor, scene) {
     canvas.tokens.hud.render();
 }
 
-Hooks.on('renderSidebarTab', function(tab, html) {
-    if (!game.user.isGM) { return; }
-    if (tab.id !== 'actors') {return;}
+Hooks.on('renderSidebarTab', function (tab, html) {
+    if (!game.user.isGM) {
+        return;
+    }
+    if (tab.id !== 'actors') {
+        return;
+    }
 
     const header = html.find('.directory-list').find('.party-list').find('header');
-    if (!header.length) {return}
+    if (!header.length) {
+        return
+    }
 
     const row = header.find('.noborder');
     if (row.find('.create-combat').length === 0) {
         const newBtn = `<a class="create-combat left-control" data-tooltip="Create Combat"><i class="fas fa-swords"></i></a>`;
-        $( newBtn ).insertBefore( row.find('span') );
+        $(newBtn).insertBefore(row.find('span'));
 
-        $(row.find('.create-combat')).on("click", async function(el) {
+        $(row.find('.create-combat')).on("click", async function (el) {
             el.stopPropagation();
 
             let party = game.actors.get($(el.currentTarget).closest('header').data()?.documentId)
-            if (!party) {return}
+            if (!party) {
+                return
+            }
 
-            let tokens = party.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug)).map(m=>m.getActiveTokens(true, true)).flat();
+            let tokens = party.members.filter(a => !a?.isOfType("familiar")).filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug)).map(m => m.getActiveTokens(true, true)).flat();
             if (game.combat) {
-                let included = game.combat.turns.map(a=>a.token.id)
-                tokens = tokens.filter(a=>!included.includes(a.id))
-                await game.combat.createEmbeddedDocuments( "Combatant", tokens.map(t=>{return {
-                    tokenId: t.id,
-                    actorId: t.actor?.id,
-                    sceneId: t.scene.id,
-                } } ))
+                let included = game.combat.turns.map(a => a.token.id)
+                tokens = tokens.filter(a => !included.includes(a.id))
+                await game.combat.createEmbeddedDocuments("Combatant", tokens.map(t => {
+                    return {
+                        tokenId: t.id,
+                        actorId: t.actor?.id,
+                        sceneId: t.scene.id,
+                    }
+                }))
                 ui.notifications.info("Combatants were added");
                 return
             }
 
             await Combat.create({scene: canvas.scene.id, active: true});
             if (tokens.length > 0) {
-                await game.combat.createEmbeddedDocuments( "Combatant", tokens.map(t=>{return {
-                    tokenId: t.id,
-                    actorId: t.actor?.id,
-                    sceneId: t.scene.id,
-                } } ))
+                await game.combat.createEmbeddedDocuments("Combatant", tokens.map(t => {
+                    return {
+                        tokenId: t.id,
+                        actorId: t.actor?.id,
+                        sceneId: t.scene.id,
+                    }
+                }))
                 ui.notifications.info("Combat was created");
             }
         });
     }
     if (row.find('.damage-all').length === 0) {
         const dBtn = `<a class="damage-all left-control" data-tooltip="Damage/Heal All"><i class="fas fa-mace"></i></a>`;
-        $( dBtn ).insertBefore( row.find('span') );
+        $(dBtn).insertBefore(row.find('span'));
 
-        $(row.find('.damage-all')).on("click", async function(el) {
+        $(row.find('.damage-all')).on("click", async function (el) {
             el.stopPropagation();
 
             let party = game.actors.get($(el.currentTarget).closest('header').data()?.documentId)
-            if (!party) {return}
+            if (!party) {
+                return
+            }
 
             let DamageRoll = CONFIG.Dice.rolls.find((r) => r.name === "DamageRoll")
-            if (!DamageRoll) {return}
-            const { formula } = await Dialog.wait({
-                title:"Apply damage/heal",
+            if (!DamageRoll) {
+                return
+            }
+            const {formula} = await Dialog.wait({
+                title: "Apply damage/heal",
                 content: `<input type="text" name="name" /><br/><p>Positive value for Heal, negative for Damage</p>`,
                 buttons: {
-                        ok: {
-                            label: "Apply",
-                            icon: "<i class='fas fa-plus'></i>",
-                            callback: (html) => { return { formula: html.find('input').val()} }
-                        },
-                        cancel: {
-                            label: "Cancel",
-                            icon: "<i class='fa-solid fa-ban'></i>",
+                    ok: {
+                        label: "Apply",
+                        icon: "<i class='fas fa-plus'></i>",
+                        callback: (html) => {
+                            return {formula: html.find('input').val()}
                         }
+                    },
+                    cancel: {
+                        label: "Cancel",
+                        icon: "<i class='fa-solid fa-ban'></i>",
+                    }
                 },
                 default: "cancel"
             });
-            if (!formula) {return}
+            if (!formula) {
+                return
+            }
 
             let roll;
             if (Number.isNumeric(formula)) {
                 roll = Number.parseInt(formula)
             } else {
-                roll = new DamageRoll(formula.startsWith("-")?formula.slice(1):formula);
-                await roll.evaluate({ async: true });
+                roll = new DamageRoll(formula.startsWith("-") ? formula.slice(1) : formula);
+                await roll.evaluate({async: true});
                 roll.toMessage();
                 if (formula.startsWith("-")) {
                     roll = -(roll.total)
@@ -535,7 +558,7 @@ Hooks.on('renderSidebarTab', function(tab, html) {
             roll *= -1;
 
             party.members.forEach((actor, index) => {
-                actor.applyDamage({ damage: roll, token: actor.getActiveTokens(true, false)[0]});
+                actor.applyDamage({damage: roll, token: actor.getActiveTokens(true, false)[0]});
             });
 
         });
@@ -544,40 +567,50 @@ Hooks.on('renderSidebarTab', function(tab, html) {
 
 async function handleSkillRoll(event, partySheet) {
     const skill = $(event.currentTarget).data().slug;
-    if (!skill) {return}
+    if (!skill) {
+        return
+    }
     const isRecKnow = $(event.currentTarget).closest(".summary").find('nav > .active').data()?.view === 'rk'
 
-    const levels = partySheet.actor.members.map(a=>a.level)
-    const defDC = (dcByLevel.get(Math.round(levels.reduce((a, b) => a + b, 0)/levels.length)) ?? 50);
+    const levels = partySheet.actor.members.map(a => a.level)
+    const defDC = (dcByLevel.get(Math.round(levels.reduce((a, b) => a + b, 0) / levels.length)) ?? 50);
 
     const isSecret = (event.ctrlKey || event.metaKey);
 
-    const { dc } = await Dialog.wait({
-        title:"DC of skill",
+    const {dc} = await Dialog.wait({
+        title: "DC of skill",
         content: `
             <h3>DC of check</h3>
             <input id="skill-dc" type="number" min="0" value=${defDC} />
         `,
         buttons: {
-                ok: {
-                    label: "Create DC Template",
-                    icon: "<i class='fa-solid fa-magic'></i>",
-                    callback: (html) => { return { dc: parseInt(html[0].querySelector("#skill-dc").value) } }
-                },
-                cancel: {
-                    label: "Cancel",
-                    icon: "<i class='fa-solid fa-ban'></i>",
+            ok: {
+                label: "Create DC Template",
+                icon: "<i class='fa-solid fa-magic'></i>",
+                callback: (html) => {
+                    return {dc: parseInt(html[0].querySelector("#skill-dc").value)}
                 }
+            },
+            cancel: {
+                label: "Cancel",
+                icon: "<i class='fa-solid fa-ban'></i>",
+            }
         },
         default: "ok"
     });
-    if (dc === undefined) { return; }
+    if (dc === undefined) {
+        return;
+    }
 
     let traits = []
-    if (isSecret) {traits.push('secret')}
-    if (isRecKnow) {traits.push('action:recall-knowledge')}
+    if (isSecret) {
+        traits.push('secret')
+    }
+    if (isRecKnow) {
+        traits.push('action:recall-knowledge')
+    }
     traits = traits.join(',')
-    const content = `@Check[type:${skill}|dc:${dc}${traits?'|traits:'+traits:''}]{${skill.capitalize()} Check}`
+    const content = `@Check[type:${skill}|dc:${dc}${traits ? '|traits:' + traits : ''}]{${skill.capitalize()} Check}`
     if (event.shiftKey) {
         navigator.clipboard.writeText(content);
         ui.notifications.info("Copied the text of check");
@@ -592,16 +625,18 @@ async function handleSkillRoll(event, partySheet) {
 async function handleSaveRoll(event, partySheet) {
     const saveText = $(event.currentTarget).find('label').text();
     let save = SHORT_SAVES[saveText];
-    if (!save) {return}
+    if (!save) {
+        return
+    }
 
-    const levels = partySheet.actor.members.map(a=>a.level)
-    const defDC = (dcByLevel.get(Math.round(levels.reduce((a, b) => a + b, 0)/levels.length)) ?? 50);
+    const levels = partySheet.actor.members.map(a => a.level)
+    const defDC = (dcByLevel.get(Math.round(levels.reduce((a, b) => a + b, 0) / levels.length)) ?? 50);
 
     const isSecret = (event.ctrlKey || event.metaKey);
 
 
-    const { dc } = await Dialog.wait({
-        title:"DC of skill",
+    const {dc} = await Dialog.wait({
+        title: "DC of skill",
         content: `
             <h3>DC of check</h3>
             <input id="skill-dc" type="number" min="0" value=${defDC} />
@@ -610,7 +645,9 @@ async function handleSaveRoll(event, partySheet) {
             ok: {
                 label: "Create DC Template",
                 icon: "<i class='fa-solid fa-magic'></i>",
-                callback: (html) => { return { dc: parseInt(html[0].querySelector("#skill-dc").value) } }
+                callback: (html) => {
+                    return {dc: parseInt(html[0].querySelector("#skill-dc").value)}
+                }
             },
             cancel: {
                 label: "Cancel",
@@ -619,9 +656,11 @@ async function handleSaveRoll(event, partySheet) {
         },
         default: "ok"
     });
-    if (dc === undefined) { return; }
+    if (dc === undefined) {
+        return;
+    }
 
-    let secret = isSecret? '|traits:secret':''
+    let secret = isSecret ? '|traits:secret' : ''
 
     const content = `@Check[type:${save}|dc:${dc}${secret}]{${save.capitalize()} Check}`
     if (event.shiftKey) {
@@ -636,11 +675,13 @@ async function handleSaveRoll(event, partySheet) {
 }
 
 function addStamina(partySheet, html) {
-    if (!game.settings.get("pf2e", "staminaVariant")) {return}
+    if (!game.settings.get("pf2e", "staminaVariant")) {
+        return
+    }
 
     partySheet.actor.members.forEach((actor) => {
         html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.health-bar').css({'bottom': '10px'});
-        const percent = !actor.system.attributes.hp.sp ? -1 : (actor.system.attributes.hp.sp.value  / actor.system.attributes.hp.sp.max) * 100;
+        const percent = !actor.system.attributes.hp.sp ? -1 : (actor.system.attributes.hp.sp.value / actor.system.attributes.hp.sp.max) * 100;
         let text = percent < 0 ? '-' : `${actor.system.attributes.hp.sp.value} / ${actor.system.attributes.hp.sp.max}`;
         html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.portrait')
             .append(`<div class="health-bar stamina-bar" style=" bottom: -10px;"><div class="bar" style="width: ${percent < 0 ? 0 : percent}%; background-color: #3535d7;"></div><span><i class="fa-solid fas fa-running"></i>${text}</span></div>`)
@@ -651,7 +692,7 @@ function addStamina(partySheet, html) {
     });
 }
 
-Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
+Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
     html.find('.skills > .tag-light').click(async (event) => {
         await handleSkillRoll(event, partySheet)
     })
@@ -679,7 +720,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
         const actor = game.actors.get(aId);
 
         if (showEffects) {
-            const senses = (actor?.system?.perception?.senses ?? []).map(sense=>sense.label);
+            const senses = (actor?.system?.perception?.senses ?? []).map(sense => sense.label);
             const data = senses.length > 0 ? `<label  class="senses-text" data-tooltip="${senses.join('<br/>')}">Senses</label>` : `<label class="senses-text">No Special Senses</label>`
             $(element).find('.score.senses').addClass("senses-new")
             $(element).find('.score.senses').html(data);
@@ -687,9 +728,9 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
             if ($(element).find('.elements').length === 0) {
                 let baseEff = [...actor.itemTypes.condition, ...actor.itemTypes.effect];
                 if (!game.user.isGM) {
-                    baseEff = baseEff.filter(a=>a.isIdentified);
+                    baseEff = baseEff.filter(a => a.isIdentified);
                 }
-                const span = baseEff.map(a=>{
+                const span = baseEff.map(a => {
                     let span = `<div class="item-image" style="background-image: url(${a.img})" data-tooltip="${a.name}">`
                     if (a.value && a.value > 0) {
                         span += `<div class="value-wrapper"><div class="value"><strong style="display: inline;">${a.value}</strong></div></div>`
@@ -712,9 +753,9 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
             $(element).find('.saving-throws').after(`<section class="focus"><div class="value"><h4>Focus</h4>${pips}</div></section>`)
         }
         if (showSpells) {
-            let spells =  spellData(actor)
+            let spells = spellData(actor)
             if (spells.length > 0) {
-                $(element).find('.saving-throws').after(`<section class="spells-data"><label class="spells-text" data-tooltip="${spells.map(a=>`${a.type} ${a.rank} Rank - ${a.active}/${a.max}`).join('<br/>')}">Spells Info</label></section>`)
+                $(element).find('.saving-throws').after(`<section class="spells-data"><label class="spells-text" data-tooltip="${spells.map(a => `${a.type} ${a.rank} Rank - ${a.active}/${a.max}`).join('<br/>')}">Spells Info</label></section>`)
             }
         }
     });
@@ -723,9 +764,9 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
         if (html.find('leader-position').length === 0) {
             const lead = partySheet.actor.getFlag(moduleName, "leader") ?? 'none';
 
-            const members = partySheet.actor.members.filter(a=>!a?.isOfType("familiar"))
-                .filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
-                .map(a=>`<option value="${a.uuid}" ${lead === a.uuid ? 'selected' : ''}>${a.name}</option>`).join('')
+            const members = partySheet.actor.members.filter(a => !a?.isOfType("familiar"))
+                .filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug))
+                .map(a => `<option value="${a.uuid}" ${lead === a.uuid ? 'selected' : ''}>${a.name}</option>`).join('')
 
             html.find('.content').find('.summary > nav')
                 .append(`<div class="leader-position"><label>Choose a leader:</label><select name="leader" class="change-leader"><option value="none" ${lead === 'none' ? 'selected' : ''}>None</option>${members}</select></div>`)
@@ -735,10 +776,10 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
                 aaa.find('.member').sort(function (a, b) {
                     return a.dataset.actorUuid === lead ? -1 : 1;
                 })
-                .appendTo( aaa );
+                    .appendTo(aaa);
             }
 
-            $(html.find('.change-leader')).on("change", async function(el) {
+            $(html.find('.change-leader')).on("change", async function (el) {
                 await partySheet.actor.setFlag(moduleName, "leader", $(this).val());
             });
         }
@@ -747,30 +788,30 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     if (game.settings.get(moduleName, "hideWealthFromPC") && !game.user.isGM) {
         html.find('.inventory-members').find('.sub-data > .value').addClass("hidden");
 
-        $(html.find('.inventory-members').find('.summary-data').children()[1]).css({ display: "none" })
+        $(html.find('.inventory-members').find('.summary-data').children()[1]).css({display: "none"})
     }
 
     const expBnt = `<div><a class="travel-duration" data-document-id="${partySheet.actor.id}" >Calculate Travel duration   <i class="far fa-clock"></i></a></div>`;
     const expBntSrt = `<div><a class="travel-duration-short" data-document-id="${partySheet.actor.id}" >Calculate Travel (Easy mod)  <i class="far fa-clock"></i></a></div>`;
     html.find('.exploration-members').find('.summary-data').append(expBnt).append(expBntSrt)
 
-    $(html.find('.travel-duration')).on("click", async function(el) {
+    $(html.find('.travel-duration')).on("click", async function (el) {
         el.stopPropagation();
         const party = game.actors.get($(el.currentTarget).data().documentId)
 
-        const members = party.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
+        const members = party.members.filter(a => !a?.isOfType("familiar")).filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug))
         if (members.length > 0) {
             game.pf2e.gm.launchTravelSheet(members);
         }
     });
 
-    $(html.find('.travel-duration-short')).on("click", async function(el) {
+    $(html.find('.travel-duration-short')).on("click", async function (el) {
         el.stopPropagation();
         const party = game.actors.get($(el.currentTarget).data().documentId)
-        const members = party.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug))
+        const members = party.members.filter(a => !a?.isOfType("familiar")).filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug))
 
         if (members.length > 0) {
-            let speed = Math.min(...members.map(m=>m.attributes.speed.total));
+            let speed = Math.min(...members.map(m => m.attributes.speed.total));
 
 
             let options = game.settings.get(moduleName, "defaultCalculatorValue")
@@ -825,29 +866,37 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
         }
     });
 
-    const foodMembers = partySheet.actor.members.filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug));
-    const allFood = [...foodMembers.map(a=>[...a.itemTypes.equipment,...a.itemTypes.consumable]).flat(), ...partySheet.actor.itemTypes.equipment,...partySheet.actor.itemTypes.consumable]
+    const foodMembers = partySheet.actor.members.filter(a => !a?.isOfType("familiar")).filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug));
+    const allFood = [...foodMembers.map(a => [...a.itemTypes.equipment, ...a.itemTypes.consumable]).flat(), ...partySheet.actor.itemTypes.equipment, ...partySheet.actor.itemTypes.consumable]
 
-    const rations = allFood.filter(a=>a.slug === "rations")
-                        .map(a=>a.uses.value + (a.uses.max * (a.quantity-1)) )
-                        .reduce((accumulator, currentValue) => { return accumulator + currentValue},0);
-    const rationTonic = allFood.filter(a=>a.slug === "ration-tonic")
-                        .map(a=>a.quantity)
-                        .reduce((accumulator, currentValue) => { return accumulator + currentValue},0);
-    const rationTonicGreater = allFood.filter(a=>a.slug === "ration-tonic-greater")
-                        .map(a=>7 * a.quantity)
-                        .reduce((accumulator, currentValue) => { return accumulator + currentValue},0);
-    const water = allFood.filter(a=>a.slug === "waterskin")
-                        .map(a=>a.quantity)
-                        .reduce((accumulator, currentValue) => { return accumulator + currentValue},0);
+    const rations = allFood.filter(a => a.slug === "rations")
+        .map(a => a.uses.value + (a.uses.max * (a.quantity - 1)))
+        .reduce((accumulator, currentValue) => {
+            return accumulator + currentValue
+        }, 0);
+    const rationTonic = allFood.filter(a => a.slug === "ration-tonic")
+        .map(a => a.quantity)
+        .reduce((accumulator, currentValue) => {
+            return accumulator + currentValue
+        }, 0);
+    const rationTonicGreater = allFood.filter(a => a.slug === "ration-tonic-greater")
+        .map(a => 7 * a.quantity)
+        .reduce((accumulator, currentValue) => {
+            return accumulator + currentValue
+        }, 0);
+    const water = allFood.filter(a => a.slug === "waterskin")
+        .map(a => a.quantity)
+        .reduce((accumulator, currentValue) => {
+            return accumulator + currentValue
+        }, 0);
 
     html.find('.exploration-members').find('.summary-data')
-        .append(`<div><label>Food per Party—Days</label><span class="value">${Math.floor((rations+rationTonic+rationTonicGreater)/foodMembers.length)}</span></div>`)
-        .append(`<div><label>Water per Party—Days</label><span class="value">${Math.floor(water/foodMembers.length)}</span></div>`)
+        .append(`<div><label>Food per Party—Days</label><span class="value">${Math.floor((rations + rationTonic + rationTonicGreater) / foodMembers.length)}</span></div>`)
+        .append(`<div><label>Water per Party—Days</label><span class="value">${Math.floor(water / foodMembers.length)}</span></div>`)
 
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0) {
-        let bar =  html.find('.total-bulk').find('.inventory-header')
+        let bar = html.find('.total-bulk').find('.inventory-header')
         bar.css("justify-content", "space-between");
         bar.append(`<span>Max Bulk: ${max}</span>`)
     }
@@ -859,31 +908,31 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
 
 function spellData(actor) {
     let data = []
-    let slotsEntry = actor.itemTypes.spellcastingEntry.filter(a=>a.isPrepared).map(a=>a?.system?.slots).filter(a=>a);
+    let slotsEntry = actor.itemTypes.spellcastingEntry.filter(a => a.isPrepared).map(a => a?.system?.slots).filter(a => a);
     slotsEntry.forEach(slots => {
-        let keys = Object.keys(slots).filter(a=>a!=='slot0')
+        let keys = Object.keys(slots).filter(a => a !== 'slot0')
 
-        keys.forEach(k=>{
+        keys.forEach(k => {
             if (slots[k].max > 0) {
                 data.push({
                     type: 'Prepared',
-                    rank:  Number(k.substring(4)),
-                    active: Object.values(slots[k].prepared).filter(a=>!a.expended).length,
+                    rank: Number(k.substring(4)),
+                    active: Object.values(slots[k].prepared).filter(a => !a.expended).length,
                     max: slots[k].max
                 });
             }
         })
     });
 
-    let spontaneousEntry = actor.itemTypes.spellcastingEntry.filter(a=>a.isSpontaneous).map(a=>a?.system?.slots).filter(a=>a);
+    let spontaneousEntry = actor.itemTypes.spellcastingEntry.filter(a => a.isSpontaneous).map(a => a?.system?.slots).filter(a => a);
     spontaneousEntry.forEach(slots => {
-        let keys = Object.keys(slots).filter(a=>a!=='slot0')
+        let keys = Object.keys(slots).filter(a => a !== 'slot0')
 
-        keys.forEach(k=>{
+        keys.forEach(k => {
             if (slots[k].max > 0) {
                 data.push({
                     type: 'Spontaneous',
-                    rank:  Number(k.substring(4)),
+                    rank: Number(k.substring(4)),
                     active: slots[k].value,
                     max: slots[k].max
                 });
@@ -891,14 +940,14 @@ function spellData(actor) {
         })
     });
 
-    let innateEntry = actor.itemTypes.spellcastingEntry.filter(a=>a.isInnate);
+    let innateEntry = actor.itemTypes.spellcastingEntry.filter(a => a.isInnate);
     innateEntry.forEach(slots => {
-        let spells = slots.spells.contents.map(a=>a.system.location);
-        spells.forEach(k=>{
+        let spells = slots.spells.contents.map(a => a.system.location);
+        spells.forEach(k => {
             if (k.uses.max > 0 && k.heightenedLevel) {
                 data.push({
                     type: 'Innate',
-                    rank:  k.heightenedLevel,
+                    rank: k.heightenedLevel,
                     active: k.uses.value,
                     max: k.uses.max
                 });
@@ -910,21 +959,25 @@ function spellData(actor) {
 }
 
 
-Hooks.on('renderActorSheetPF2e', function(sheet, html, data) {
-    if (sheet.actor.type  != "character") {return}
-    if (sheet.actor.parties.size === 0) {return}
+Hooks.on('renderActorSheetPF2e', function (sheet, html, data) {
+    if (sheet.actor.type != "character") {
+        return
+    }
+    if (sheet.actor.parties.size === 0) {
+        return
+    }
 
     const parties = [...sheet.actor.parties];
     const partyActors = parties
-        .map(p=>p.members).flat().filter(a=>a.id!=sheet.actor.id)
-        .filter(a=>!a?.isOfType("familiar")).filter(a=>!["eidolon", 'animal-companion'].includes(a.class?.slug));
+        .map(p => p.members).flat().filter(a => a.id != sheet.actor.id)
+        .filter(a => !a?.isOfType("familiar")).filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug));
 
     html.find('.sheet-content').find('.wealth').append('<a class="show-party-members" title="Party Members" style=""><i class="fa-solid fa-address-card"></i></a>')
-    const members = [...partyActors, ...parties].map(a=>`<li class="box "><div class="actor-link content" data-actor-uuid="${a.uuid}" data-action="open-sheet" data-tab="inventory"><img src="${a.getActiveTokens(false, true)[0]?.texture?.src ?? a.img}" data-tooltip="${a.name}"></div><div class="footer"><i class="fa-solid fa-weight-hanging"></i> ${toBulk(a.inventory.bulk.value)}/${a?.isOfType('party') ? '∞' : a.inventory.bulk.encumberedAfter + 'B'}</div></li>`).join('');
+    const members = [...partyActors, ...parties].map(a => `<li class="box "><div class="actor-link content" data-actor-uuid="${a.uuid}" data-action="open-sheet" data-tab="inventory"><img src="${a.getActiveTokens(false, true)[0]?.texture?.src ?? a.img}" data-tooltip="${a.name}"></div><div class="footer"><i class="fa-solid fa-weight-hanging"></i> ${toBulk(a.inventory.bulk.value)}/${a?.isOfType('party') ? '∞' : a.inventory.bulk.encumberedAfter + 'B'}</div></li>`).join('');
     const memberList = `<form><section data-region="inventoryMembers"><ol class="box-list inventory-members" style="flex-direction: row; flex-wrap: wrap; justify-content: center;">${members}</ol></section><form>`
     html.find('.sheet-content').find('.coinage').append(`<div class="sidebar-party-members" style="display: ${sheet.actor.getFlag(moduleName, 'partySharingDisplay') ?? 'none'}">${memberList}</aside>`);
 
-    $(html.find('.show-party-members')).on("click", async function(el) {
+    $(html.find('.show-party-members')).on("click", async function (el) {
         el.stopPropagation();
         html.find('.sidebar-party-members').toggle();
 
@@ -934,15 +987,19 @@ Hooks.on('renderActorSheetPF2e', function(sheet, html, data) {
                     'partySharingDisplay': html.find('.sidebar-party-members').css('display') ?? 'none'
                 }
             }
-        }, { "noHook": true });
+        }, {"noHook": true});
     });
 });
 
 function toBulk(bulk) {
     let data = '';
 
-    if (bulk?.normal > 0) {data += ` ${bulk?.normal}B`}
-    if (bulk?.light > 0) {data += `${!!data ? ',' : ''}${bulk?.light}L`}
+    if (bulk?.normal > 0) {
+        data += ` ${bulk?.normal}B`
+    }
+    if (bulk?.light > 0) {
+        data += `${!!data ? ',' : ''}${bulk?.light}L`
+    }
 
     return data;
 }
@@ -955,13 +1012,15 @@ Hooks.once("ready", () => {
 });
 
 Hooks.on("ready", () => {
-    const charSheet = Actors.registeredSheets.find(a=>a.name==="CharacterSheetPF2e");
-    if (!charSheet) {return}
+    const charSheet = Actors.registeredSheets.find(a => a.name === "CharacterSheetPF2e");
+    if (!charSheet) {
+        return
+    }
     const originCall = charSheet.prototype._onDropItem
 
-    charSheet.prototype._onDropItem = async function(event, data) {
-        const droppedRegion = event.target?.closest("[data-region]")?.dataset.region;
-        const targetActor = event.target?.closest("[data-actor-uuid]")?.dataset.actorUuid;
+    charSheet.prototype._onDropItem = async function (event, data) {
+        const droppedRegion = event.target?.closest("[data-region]")?.dataset?.region;
+        const targetActor = event.target?.closest("[data-actor-uuid]")?.dataset?.actorUuid;
 
         if (droppedRegion === "inventoryMembers" && targetActor) {
             const item = await CONFIG.Item.documentClass.fromDropData(data);
@@ -1052,35 +1111,49 @@ class MoveLootPopup extends FormApplication {
     }
 }
 
-Hooks.on('createItem',  (item) => {
-    if (!item?.actor) {return}
-    if (!item?.actor?.isOfType("party")) {return}
+Hooks.on('createItem', (item) => {
+    if (!item?.actor) {
+        return
+    }
+    if (!item?.actor?.isOfType("party")) {
+        return
+    }
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notify") {
-        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`)  > max) {
+        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`) > max) {
             ui.notifications.info("Party Stash is Encumbered");
         }
     }
 });
 
-Hooks.on('updateItem',  (item, data) => {
-    if (!item?.actor) {return}
-    if (!item?.actor?.isOfType("party")) {return}
-    if (!data?.system?.quantity) {return}
+Hooks.on('updateItem', (item, data) => {
+    if (!item?.actor) {
+        return
+    }
+    if (!item?.actor?.isOfType("party")) {
+        return
+    }
+    if (!data?.system?.quantity) {
+        return
+    }
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notify") {
-        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`)  > max) {
+        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`) > max) {
             ui.notifications.info("Party Stash is Encumbered");
         }
     }
 });
 
 Hooks.on('preCreateItem', (item) => {
-    if (!item?.actor) {return}
-    if (!item?.actor?.isOfType("party")) {return}
+    if (!item?.actor) {
+        return
+    }
+    if (!item?.actor?.isOfType("party")) {
+        return
+    }
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notadd") {
-        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`)  > max) {
+        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`) > max) {
             ui.notifications.info("Party Stash is Encumbered");
             return false;
         }
@@ -1088,12 +1161,18 @@ Hooks.on('preCreateItem', (item) => {
 });
 
 Hooks.on('preUpdateItem', (item, data) => {
-    if (!item?.actor) {return}
-    if (!item?.actor?.isOfType("party")) {return}
-    if (!data?.system?.quantity) {return}
+    if (!item?.actor) {
+        return
+    }
+    if (!item?.actor?.isOfType("party")) {
+        return
+    }
+    if (!data?.system?.quantity) {
+        return
+    }
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notadd") {
-        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`)  > max) {
+        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`) > max) {
             ui.notifications.info("Party Stash is Encumbered");
             return false;
         }
