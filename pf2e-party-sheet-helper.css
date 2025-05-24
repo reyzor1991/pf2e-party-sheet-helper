@@ -10,6 +10,10 @@
     line-height: 30px;
 }
 
+.directory.subsystem-section .directory-item > *{
+    flex: 1;
+}
+
 .create-subsystem-row {
     padding-left: 10px;
 }

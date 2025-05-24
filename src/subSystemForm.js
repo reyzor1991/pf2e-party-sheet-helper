@@ -268,11 +268,8 @@ Hooks.on('pf2e.systemReady', function () {
                 html.find('.container').find('.subsystem-list').find('.directory-item').on("click", async function (event) {
                     event.preventDefault();
                     let target = $(event.currentTarget);
-                    if (target.hasClass('collapsed')) {
-                        target.removeClass('collapsed')
-                    } else {
-                        target.addClass('collapsed')
-                    }
+
+                    target.toggleClass('collapsed expanded')
                 })
 
             }
@@ -387,7 +384,7 @@ function subSystemRows(party) {
           <header class="folder-header flexrow">
             <h3 class="noborder"><i class="fas fa-folder-open fa-fw"></i>${subSystemLabels[obj]}</h3>
           </header>
-          <ol class="subdirectory">
+          <ol class="subdirectory plain">
                 ${subSystemRow(subSystems[obj], SUBSYSTEM_TIERS_LABELS[obj])}
           </ol>
         </li>`
@@ -409,8 +406,8 @@ function getTierLabelByValue(value, labels) {
 
 function subSystemRow(subSystem, labels) {
     return Object.entries(subSystem).sort()
-        .map(a => `<li class="directory-item compendium flexcol" style="display: flex;flex-direction: row;">
-                <h3 class="entry-name compendium-name">${a[0]}</h3><label>${a[1]}${getTierLabelByValue(a[1], labels)}</label>
+        .map(a => `<li class="directory-item entry" style="display: flex;flex-direction: row;">
+                <h3 class="entry-name">${a[0]}</h3><label>${a[1]}${getTierLabelByValue(a[1], labels)}</label>
             </li>`
         ).join("");
 }
