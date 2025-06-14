@@ -13,15 +13,6 @@ const SUBSYSTEM_TIERS_LABELS = {
     ]
 };
 
-let socketlibSocket = undefined;
-
-const setupSocket = () => {
-    if (globalThis.socketlib) {
-        socketlibSocket = globalThis.socketlib.registerModule(moduleName);
-        socketlibSocket.register("sendItemToActor", sendItemToActor);
-    }
-    return !!globalThis.socketlib
-}
 
 function isGM() {
     return game.users.activeGM === game.user;
@@ -30,7 +21,9 @@ function isGM() {
 async function sendItemToActor(ownerId, targetId, itemId, qty, stack) {
     const target = game.actors.get(targetId)
     if (!hasPermissions(target)) {
-        socketlibSocket._sendRequest("sendItemToActor", [ownerId, targetId, itemId, qty, stack], 0)
+        executeAsGM(SEND_ITEM, {
+            ownerId, targetId, itemId, qty, stack
+        })
         return
     }
 
@@ -43,16 +36,12 @@ async function sendItemToActor(ownerId, targetId, itemId, qty, stack) {
     owner.transferItemToActor(target, item, qty, undefined, stack);
 
     ChatMessage.create({
-        type: CONST.CHAT_MESSAGE_TYPES.EMOTE,
+        style: CONST.CHAT_MESSAGE_STYLES.EMOTE,
         flavor: `<h4 class="action"><strong>Interact</strong><span class="action-glyph">A</span><span class="subtitle">(Give item)</span></h4><div class="tags"><span class="tag tooltipstered" data-slug="manipulate" data-description="PF2E.TraitDescriptionManipulate">Manipulate</span></div><hr class="action-divider">`,
         content: `<p class="action-content"><img src="${item.img}">${owner.name} gives ${qty} × ${item.name} to ${target.name}.</p>`,
         speaker: ChatMessage.getSpeaker({actor: owner}),
     })
 }
-
-Hooks.once('setup', function () {
-    if (!setupSocket()) console.error('Error: Unable to set up socket lib for PF2e Party Sheet Helper')
-});
 
 const dcByLevel = new Map([
     [-1, 13],
@@ -521,7 +510,7 @@ async function handleSkillRoll(event, partySheet) {
         ui.notifications.info("Copied the text of check");
     } else {
         ChatMessage.create({
-            type: CONST.CHAT_MESSAGE_TYPES.OOC,
+            style: CONST.CHAT_MESSAGE_STYLES.OOC,
             content
         });
     }
@@ -573,7 +562,7 @@ async function handleSaveRoll(event, partySheet) {
         ui.notifications.info("Copied the text of check");
     } else {
         ChatMessage.create({
-            type: CONST.CHAT_MESSAGE_TYPES.OOC,
+            style: CONST.CHAT_MESSAGE_STYLES.OOC,
             content
         });
     }
@@ -920,6 +909,8 @@ Hooks.once("ready", () => {
         ...CONFIG.PF2E.equipmentTraits,
         ...CONFIG.PF2E.weaponTraits,
     };
+
+    socketListener()
 });
 
 Hooks.on("ready", () => {
