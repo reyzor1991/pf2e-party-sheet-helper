@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.3.3
+- Fix move to source of roll skill message
+
 ## Version 0.3.2
 - Fix rendering skill tab
 

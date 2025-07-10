@@ -44,7 +44,7 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
     html.find('.container').append(`<div class="tab" data-tab="skills" data-region="skills"><div class="content">${content}</div></div>`)
 
     $(".link-to-message").on("click", function () {
-        $(document).find(`#chat-log li[data-message-id="${this?.dataset?.id}"]`)[0]?.scrollIntoView({block: "start"});
+        $(document).find(`#chat .chat-log li[data-message-id="${this?.dataset?.id}"]`)[0]?.scrollIntoView({block: "start"});
     });
     $(".delete-row").on("click", async function () {
         await game.actors.party.unsetFlag('pf2e-party-sheet-helper', `skills.${this?.dataset?.key}`)
