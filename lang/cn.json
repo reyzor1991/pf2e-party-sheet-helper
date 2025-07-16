@@ -1,0 +1,17 @@
+{
+  "pf2e-party-sheet-helper": {
+    "subsystems": {
+      "reputation": {
+        "labels": {
+          "hunted": "狩猎",
+          "hated": "仇恨",
+          "disliked": "厌恶",
+          "ignored": "忽视",
+          "liked": "喜爱",
+          "admired": "钦佩",
+          "revered": "尊敬"
+        }
+      }
+    }
+  }
+}
