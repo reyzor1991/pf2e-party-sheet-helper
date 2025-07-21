@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.3.4
+- Add Chinese localization (Kuroni)
+
 ## Version 0.3.3
 - Fix move to source of roll skill message
 
