@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.3.5
+- Fix for max encumbrance
+
 ## Version 0.3.4
 - Add Chinese localization (Kuroni)
 
