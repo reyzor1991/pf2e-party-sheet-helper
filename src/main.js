@@ -345,7 +345,7 @@ Hooks.on('init', function () {
     });
 });
 
-Hooks.on('renderSidebarTab', function (tab, html) {
+Hooks.on('renderAbstractSidebarTab', function (tab, html) {
     if (!game.user.isGM) {
         return;
     }
@@ -353,110 +353,119 @@ Hooks.on('renderSidebarTab', function (tab, html) {
         return;
     }
 
-    const header = html.find('.directory-list').find('.party-list').find('header');
-    if (!header.length) {
+    const headers = html.querySelectorAll('.directory-list.parties header');
+    if (!headers) {
         return
     }
 
-    const row = header.find('.noborder');
-    if (row.find('.create-combat').length === 0) {
-        const newBtn = `<a class="create-combat left-control" data-tooltip="Create Combat"><i class="fas fa-swords"></i></a>`;
-        $(newBtn).insertBefore(row.find('span'));
+    headers.forEach((header) => {
+        let party = game.actors.get(header.closest('.directory-item')?.dataset?.entryId)
+        if (!party) {
+            return
+        }
 
-        $(row.find('.create-combat')).on("click", async function (el) {
-            el.stopPropagation();
+        if (!header.querySelector('.create-combat')) {
+            let tokens = party.members
+                .filter(a => !a?.isOfType("familiar"))
+                .filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug))
+                .map(m => m.getActiveTokens(true, true)).flat();
 
-            let party = game.actors.get($(el.currentTarget).closest('header').data()?.documentId)
-            if (!party) {
-                return
+
+            const newBtn = foundry.utils.parseHTML(`<a class="create-combat left-control" data-tooltip="Create Combat"><i class="fas fa-swords"></i></a>`);
+            const span = header.querySelector('span');
+            if (span?.parentNode) {
+                span.parentNode.insertBefore(newBtn, span);
+            }
+            newBtn.addEventListener("click", async function (event) {
+                event.stopPropagation();
+
+                if (game.combat) {
+                    let included = game.combat.turns.map(a => a.token.id)
+                    tokens = tokens.filter(a => !included.includes(a.id))
+                    tokens = tokens.map(t => {
+                        return {
+                            tokenId: t.id,
+                            actorId: t.actor?.id,
+                            sceneId: t.scene.id,
+                        }
+                    });
+                    await game.combat.createEmbeddedDocuments("Combatant", tokens)
+                    ui.notifications.info("Combatants were added");
+                    return
+                }
+
+                await Combat.create({scene: canvas.scene.id, active: true});
+                if (tokens.length > 0) {
+                    tokens = tokens.map(t => {
+                        return {
+                            tokenId: t.id,
+                            actorId: t.actor?.id,
+                            sceneId: t.scene.id,
+                        }
+                    });
+                    await game.combat.createEmbeddedDocuments("Combatant", tokens)
+                    ui.notifications.info("Combat was created");
+                }
+            });
+        }
+
+
+        if (!header.querySelector('.damage-all')) {
+            const dBtn = foundry.utils.parseHTML(`<a class="damage-all left-control" data-tooltip="Damage/Heal All"><i class="fas fa-mace"></i></a>`);
+            const span = header.querySelector('span');
+            if (span?.parentNode) {
+                span.parentNode.insertBefore(dBtn, span);
             }
 
-            let tokens = party.members.filter(a => !a?.isOfType("familiar")).filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug)).map(m => m.getActiveTokens(true, true)).flat();
-            if (game.combat) {
-                let included = game.combat.turns.map(a => a.token.id)
-                tokens = tokens.filter(a => !included.includes(a.id))
-                await game.combat.createEmbeddedDocuments("Combatant", tokens.map(t => {
-                    return {
-                        tokenId: t.id,
-                        actorId: t.actor?.id,
-                        sceneId: t.scene.id,
-                    }
-                }))
-                ui.notifications.info("Combatants were added");
-                return
-            }
+            dBtn.addEventListener("click", async function (event) {
+                let DamageRoll = CONFIG.Dice.rolls.find((r) => r.name === "DamageRoll")
+                if (!DamageRoll) {
+                    return
+                }
 
-            await Combat.create({scene: canvas.scene.id, active: true});
-            if (tokens.length > 0) {
-                await game.combat.createEmbeddedDocuments("Combatant", tokens.map(t => {
-                    return {
-                        tokenId: t.id,
-                        actorId: t.actor?.id,
-                        sceneId: t.scene.id,
-                    }
-                }))
-                ui.notifications.info("Combat was created");
-            }
-        });
-    }
-    if (row.find('.damage-all').length === 0) {
-        const dBtn = `<a class="damage-all left-control" data-tooltip="Damage/Heal All"><i class="fas fa-mace"></i></a>`;
-        $(dBtn).insertBefore(row.find('span'));
-
-        $(row.find('.damage-all')).on("click", async function (el) {
-            el.stopPropagation();
-
-            let party = game.actors.get($(el.currentTarget).closest('header').data()?.documentId)
-            if (!party) {
-                return
-            }
-
-            let DamageRoll = CONFIG.Dice.rolls.find((r) => r.name === "DamageRoll")
-            if (!DamageRoll) {
-                return
-            }
-            const {formula} = await Dialog.wait({
-                title: "Apply damage/heal",
-                content: `<input type="text" name="name" /><br/><p>Positive value for Heal, negative for Damage</p>`,
-                buttons: {
-                    ok: {
-                        label: "Apply",
-                        icon: "<i class='fas fa-plus'></i>",
-                        callback: (html) => {
-                            return {formula: html.find('input').val()}
+                const {formula} = await Dialog.wait({
+                    title: "Apply damage/heal",
+                    content: `<input type="text" name="name" /><br/><p>Positive value for Heal, negative for Damage</p>`,
+                    buttons: {
+                        ok: {
+                            label: "Apply",
+                            icon: "<i class='fas fa-plus'></i>",
+                            callback: (html) => {
+                                return {formula: html.find('input').val()}
+                            }
+                        },
+                        cancel: {
+                            label: "Cancel",
+                            icon: "<i class='fa-solid fa-ban'></i>",
                         }
                     },
-                    cancel: {
-                        label: "Cancel",
-                        icon: "<i class='fa-solid fa-ban'></i>",
-                    }
-                },
-                default: "cancel"
-            });
-            if (!formula) {
-                return
-            }
-
-            let roll;
-            if (Number.isNumeric(formula)) {
-                roll = Number.parseInt(formula)
-            } else {
-                roll = new DamageRoll(formula.startsWith("-") ? formula.slice(1) : formula);
-                await roll.evaluate({async: true});
-                roll.toMessage();
-                if (formula.startsWith("-")) {
-                    roll = -(roll.total)
+                    default: "cancel"
+                });
+                if (!formula) {
+                    return
                 }
-            }
 
-            roll *= -1;
+                let roll;
+                if (Number.isNumeric(formula)) {
+                    roll = Number.parseInt(formula)
+                } else {
+                    roll = new DamageRoll(formula.startsWith("-") ? formula.slice(1) : formula);
+                    await roll.evaluate({async: true});
+                    roll.toMessage();
+                    if (formula.startsWith("-")) {
+                        roll = -(roll.total)
+                    }
+                }
 
-            party.members.forEach((actor, index) => {
-                actor.applyDamage({damage: roll, token: actor.getActiveTokens(true, false)[0]});
+                roll *= -1;
+
+                party.members.forEach((actor, _index) => {
+                    actor.applyDamage({damage: roll, token: actor.getActiveTokens(true, false)[0] ?? {name: actor.name}});
+                });
             });
+        }
+    })
 
-        });
-    }
 })
 
 async function handleSkillRoll(event, partySheet) {
@@ -794,9 +803,8 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
 
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0) {
-        let bar = html.find('.total-bulk').find('.inventory-header')
-        bar.css("justify-content", "space-between");
-        bar.append(`<span>Max Bulk: ${max}</span>`)
+        let bar = html.find('.total-bulk')
+        bar.append(`<span style="margin-left:auto;padding-right: 5px;">Max Bulk: ${max}</span>`)
     }
 
     if (game.settings.get(moduleName, "hideGeneralInfo")) {
@@ -1022,7 +1030,7 @@ Hooks.on('createItem', (item) => {
     }
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notify") {
-        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`) > max) {
+        if ((item.actor.inventory.bulk.value.value + item.bulk.value) > max) {
             ui.notifications.info("Party Stash is Encumbered");
         }
     }
@@ -1040,7 +1048,7 @@ Hooks.on('updateItem', (item, data) => {
     }
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notify") {
-        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`) > max) {
+        if ((item.actor.inventory.bulk.value.value + item.bulk.value) > max) {
             ui.notifications.info("Party Stash is Encumbered");
         }
     }
@@ -1055,7 +1063,7 @@ Hooks.on('preCreateItem', (item) => {
     }
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notadd") {
-        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`) > max) {
+        if ((item.actor.inventory.bulk.value.value + item.bulk.value) > max) {
             ui.notifications.info("Party Stash is Encumbered");
             return false;
         }
@@ -1074,7 +1082,7 @@ Hooks.on('preUpdateItem', (item, data) => {
     }
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0 && game.settings.get(moduleName, "maxEncumbranceBehaviour") === "notadd") {
-        if (parseFloat(`${item.actor.inventory.bulk.value.normal}.${item.actor.inventory.bulk.value.light}`) > max) {
+        if ((item.actor.inventory.bulk.value.value + item.bulk.value) > max) {
             ui.notifications.info("Party Stash is Encumbered");
             return false;
         }
