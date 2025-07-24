@@ -371,7 +371,7 @@ Hooks.on('renderAbstractSidebarTab', function (tab, html) {
                 .map(m => m.getActiveTokens(true, true)).flat();
 
 
-            const newBtn = foundry.utils.parseHTML(`<a class="create-combat left-control" data-tooltip="Create Combat"><i class="fas fa-swords"></i></a>`);
+            const newBtn = foundry.utils.parseHTML(`<button type="button" class="create-combat left-control inline-control icon fas fa-swords" data-tooltip="Create Combat"></button>`);
             const span = header.querySelector('span');
             if (span?.parentNode) {
                 span.parentNode.insertBefore(newBtn, span);
@@ -409,9 +409,8 @@ Hooks.on('renderAbstractSidebarTab', function (tab, html) {
             });
         }
 
-
         if (!header.querySelector('.damage-all')) {
-            const dBtn = foundry.utils.parseHTML(`<a class="damage-all left-control" data-tooltip="Damage/Heal All"><i class="fas fa-mace"></i></a>`);
+            const dBtn = foundry.utils.parseHTML(`<button type="button" class="damage-all left-control inline-control icon fas fa-mace" data-tooltip="Damage/Heal All"></button>`);
             const span = header.querySelector('span');
             if (span?.parentNode) {
                 span.parentNode.insertBefore(dBtn, span);

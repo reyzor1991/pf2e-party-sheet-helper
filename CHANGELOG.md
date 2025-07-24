@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.3.6
+- Small css changes for party btns
+
 ## Version 0.3.5
 - Fix for max encumbrance
 
