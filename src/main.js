@@ -795,10 +795,20 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
         .reduce((accumulator, currentValue) => {
             return accumulator + currentValue
         }, 0);
+    const waterKeg = allFood.filter(a => a.slug === "water-keg")
+	.map(a => a.quantity * 15)
+	.reduce((accumulator, currentValue) => {
+	    return accumulator + currentValue
+	}, 0);
+    const waterBarrel = allFood.filter(a => a.slug === "water-barrel")
+	.map(a => a.quantity * 42)
+	.reduce((accumulator, currentValue
+	    return accumulator + currentValue
+	}, 0);
 
     html.find('.exploration-members').find('.summary-data')
         .append(`<div><label>Food per Party—Days</label><span class="value">${Math.floor((rations + rationTonic + rationTonicGreater) / foodMembers.length)}</span></div>`)
-        .append(`<div><label>Water per Party—Days</label><span class="value">${Math.floor(water / foodMembers.length)}</span></div>`)
+        .append(`<div><label>Water per Party—Days</label><span class="value">${Math.floor((water + waterKeg + waterBarrel) / foodMembers.length)}</span></div>`)
 
     let max = game.settings.get(moduleName, "maxEncumbrance");
     if (max && max > 0) {
