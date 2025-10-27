@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.3.7
+- Fix heal btn
+
 ## Version 0.3.6
 - Small css changes for party btns
 

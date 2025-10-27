@@ -353,7 +353,7 @@ Hooks.on('renderAbstractSidebarTab', function (tab, html) {
         return;
     }
 
-    const headers = html.querySelectorAll('.directory-list.parties header');
+    const headers = html.querySelectorAll('.directory-list .parties header');
     if (!headers) {
         return
     }
