@@ -255,23 +255,58 @@ Hooks.on('pf2e.systemReady', function () {
         CONFIG.Actor.sheetClasses.party['pf2e.PartySheetPF2e'].cls.prototype._renderInner = async function (data, options) {
             let html = await or.call(this, data, options);
             if (game.user.isGM || game.settings.get(moduleName, "showSubsystem")) {
+                let party = this.object;
                 const content = `
                 <section class="tab sidebar-tab directory flexcol subsystem-section">
                     <ol class="directory-list subsystem-list">
-                        ${subSystemRows(this.object)}
+                        ${subSystemRows(party)}
                     </ol>
                 </section>`
 
                 html.find('.sub-nav:not(.sub-sub-nav)').append('<a data-tab="sub-system" class="">Subsystems</a>')
                 html.find('.container').append(`<div class="tab" data-tab="sub-system" data-region="sub-system"><div class="content">${content}</div></div>`)
 
-                html.find('.container').find('.subsystem-list').find('.directory-item').on("click", async function (event) {
-                    event.preventDefault();
-                    let target = $(event.currentTarget);
+                html.on('click', '.directory-item.folder > .folder-header', function (e) {
+                    e.preventDefault();
+                    const li = $(this).closest('.directory-item.folder');
+                    let subSystem = li.data().subSystem;
 
-                    target.toggleClass('collapsed expanded')
-                })
+                    if (isGM() && subSystem) {
+                        let currentState = li.hasClass('collapsed') ? 'expanded' : 'collapsed';
 
+                        party.setFlag(moduleName, "subsystems-expand", {
+                            [subSystem]: currentState
+                        })
+                    } else {
+                        li.toggleClass('collapsed expanded');
+                    }
+                });
+
+                html.on('click', '.increase-sub-system-value', function (e) {
+                    e.preventDefault();
+                    let name = $(this).data().name;
+                    let subSystem = $(this).data().subSystem;
+                    if (subSystem && name) {
+                        const subSystems = (party.getFlag(moduleName, "subsystems") ?? {})
+                        if (subSystems?.[subSystem]?.[name] !== undefined) {
+                            subSystems[subSystem][name] += 1;
+                            party.setFlag(moduleName, "subsystems", subSystems)
+                        }
+                    }
+                });
+
+                html.on('click', '.decrease-sub-system-value', function (e) {
+                    e.preventDefault();
+                    let name = $(this).data().name;
+                    let subSystem = $(this).data().subSystem;
+                    if (subSystem && name) {
+                        const subSystems = (party.getFlag(moduleName, "subsystems") ?? {})
+                        if (subSystems?.[subSystem]?.[name] !== undefined) {
+                            subSystems[subSystem][name] -= 1;
+                            party.setFlag(moduleName, "subsystems", subSystems)
+                        }
+                    }
+                });
             }
             return html;
         }
@@ -378,14 +413,17 @@ const subSystemLabels = {
 
 function subSystemRows(party) {
     const subSystems = (party.getFlag(moduleName, "subsystems") ?? {})
+    const subSystemsExpand = (party.getFlag(moduleName, "subsystems-expand") ?? {})
 
     return Object.keys(subSystems).map(obj => {
-        let a = `<li class="directory-item folder flexcol collapsed">
+        let state = subSystemsExpand[obj] ?? 'collapsed';
+
+        let a = `<li class="directory-item folder flexcol ${state}" data-sub-system="${obj}">
           <header class="folder-header flexrow">
             <h3 class="noborder"><i class="fas fa-folder-open fa-fw"></i>${subSystemLabels[obj]}</h3>
           </header>
           <ol class="subdirectory plain">
-                ${subSystemRow(subSystems[obj], SUBSYSTEM_TIERS_LABELS[obj])}
+                ${subSystemRow(obj, subSystems[obj], SUBSYSTEM_TIERS_LABELS[obj])}
           </ol>
         </li>`
         return a;
@@ -404,12 +442,22 @@ function getTierLabelByValue(value, labels) {
     return ` (${game.i18n.localize(r[1])})`
 }
 
-function subSystemRow(subSystem, labels) {
+function subSystemRow(subSystemName, subSystem, labels) {
     return Object.entries(subSystem).sort()
         .map(a => `<li class="directory-item entry" style="display: flex;flex-direction: row;">
-                <h3 class="entry-name">${a[0]}</h3><label>${a[1]}${getTierLabelByValue(a[1], labels)}</label>
+                <h3 class="entry-name">${a[0]}</h3><span>${subSystemRowSpanText(subSystemName, a[0], a[1], labels)}</span>
             </li>`
         ).join("");
+}
+
+function subSystemRowSpanText(subSystemName, name, value, labels) {
+    if (game.user.isGM) {
+        return ` <i class="fa-solid fa-minus decrease-sub-system-value" data-sub-system="${subSystemName}" data-name="${name}" ></i>   `
+            + value
+            + `   <i class="fa-solid fa-plus increase-sub-system-value" data-sub-system="${subSystemName}" data-name="${name}" ></i> `
+            + getTierLabelByValue(value, labels);
+    }
+    return value + getTierLabelByValue(value, labels);
 }
 
 //Influence

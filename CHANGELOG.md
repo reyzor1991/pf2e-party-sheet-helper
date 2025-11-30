@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.3.8
+- Add inside fast point change btns
+
 ## Version 0.3.7
 - Fix heal btn
 
