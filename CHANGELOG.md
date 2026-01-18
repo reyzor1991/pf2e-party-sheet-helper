@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.3.9
+- Fix css on affliction tab
+
 ## Version 0.3.8
 - Add inside fast point change btns
 

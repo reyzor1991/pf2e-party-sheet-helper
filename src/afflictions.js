@@ -28,14 +28,8 @@ function htmlAffliction(party, html) {
                     </header>
                     <a><img src="${a.img}"></a>
                 </div>
-                <div class="data">
+                <div class="data scrollable">
                     <section class="effects">
-                        <div class="affliction-row">
-                            <div class="col"></div>
-                            <div class="name col">Name</div>
-                            <div class="col"><a>Total remaining</a></div>
-                            <div class="col"><a>Next stage</a></div>
-                        </div>
                         ${affs}
                     </section>
                 </div>

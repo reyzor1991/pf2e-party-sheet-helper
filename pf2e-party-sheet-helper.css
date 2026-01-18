@@ -297,6 +297,7 @@
 .affliction-row {
     flex-direction: row;
     display: flex;
+    padding: 5px;
 }
 
 .sheet.party [data-tab=afflictions] .member .affliction-row .item-image {
@@ -313,7 +314,11 @@
 }
 
 .sheet.party [data-tab=afflictions] .member .effects .col img {
-    max-width: 65px;
+    max-width: 45px;
+}
+
+.sheet.party [data-tab=afflictions] .afflictions data {
+    height: 100%;
 }
 
 #sub-skills tr > td {
