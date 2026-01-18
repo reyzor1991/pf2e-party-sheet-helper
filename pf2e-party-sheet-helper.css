@@ -271,8 +271,8 @@
 
 .sheet.party [data-tab=afflictions] .member > .portrait img {
     border: none;
-    height: 100%;
-    width: 100%;
+    height: 80%;
+    width: 80%;
     object-fit: contain;
 }
 
@@ -319,6 +319,12 @@
 
 .sheet.party [data-tab=afflictions] .afflictions data {
     height: 100%;
+}
+
+.sheet.party [data-tab=afflictions] .afflictions .member:not(:last-child) {
+    border-bottom: 1px solid #666;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
 }
 
 #sub-skills tr > td {
