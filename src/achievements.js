@@ -105,7 +105,7 @@ function htmlAchievements(party, html) {
 
     let navs = Object.keys(data)
         .sort((a, b) => a === party.id ? -1 : 1)
-        .map(k => `<a data-tab="${k}">${game.actors.get(k).name}</a>`)
+        .map(k => `<a data-tab="${k}">${game.actors.get(k)?.name ?? 'Deleted actor'}</a>`)
     navs = navs.length === 1
         ? ""
         : `<nav class="sub-nav sub-sub-nav">

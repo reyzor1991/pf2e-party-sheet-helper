@@ -699,7 +699,10 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
 
     $(html.find('.travel-duration')).on("click", async function (el) {
         el.stopPropagation();
-        const party = game.actors.get($(el.currentTarget).data().documentId)
+        const party = game.actors.get($(el.currentTarget)?.data()?.documentId)
+        if (!party) {
+            return
+        }
 
         const members = party.members.filter(a => !a?.isOfType("familiar")).filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug))
         if (members.length > 0) {
@@ -710,6 +713,9 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
     $(html.find('.travel-duration-short')).on("click", async function (el) {
         el.stopPropagation();
         const party = game.actors.get($(el.currentTarget).data().documentId)
+        if (!party) {
+            return
+        }
         const members = party.members.filter(a => !a?.isOfType("familiar")).filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug))
 
         if (members.length > 0) {

@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.3.10
+- Fix issue with achievements tab
+
 ## Version 0.3.9
 - Fix css on affliction tab
 
