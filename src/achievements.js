@@ -1,4 +1,25 @@
-class AchievementForm extends FormApplication {
+class AchievementForm extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+
+    static DEFAULT_OPTIONS = {
+        tag: "form",
+        id: `${moduleName}-achievements-configure`,
+        classes: [moduleName],
+        window: {title: "Achievements Config", resizable: true},
+        position: {width: 500},
+        actions: {},
+        form: {
+            handler: this.formHandler,
+            closeOnSubmit: true,
+            submitOnChange: false,
+        },
+    };
+
+    static PARTS = {
+        main: {
+            template: "modules/pf2e-party-sheet-helper/templates/achievements.hbs",
+            root: true,
+        },
+    };
 
     constructor(options) {
         super({});
@@ -8,11 +29,11 @@ class AchievementForm extends FormApplication {
         this.actor = options.actor;
     }
 
-    getData() {
+    async _prepareContext() {
         if (this.achievement) {
-            return foundry.utils.mergeObject(super.getData(), {
+            return {
                 achievement: this.achievement
-            });
+            };
         } else {
             let pcs = this.actor.members.filter(m => m.isOfType('character')).reduce((obj, row) => {
                 obj[row.id] = row.name
@@ -20,27 +41,21 @@ class AchievementForm extends FormApplication {
             }, {});
             pcs[this.actor.id] = this.actor.name;
 
-            return foundry.utils.mergeObject(super.getData(), {
+            return {
                 pcs
-            });
+            };
         }
     }
 
-    static get defaultOptions() {
-        return foundry.utils.mergeObject(super.defaultOptions, {
-            title: "Achievements Config",
-            id: `${moduleName}-achievements-configure`,
-            classes: [moduleName],
-            template: "modules/pf2e-party-sheet-helper/templates/achievements.hbs",
-            width: 500,
-            height: "auto",
-            closeOnSubmit: false,
-            submitOnChange: false,
-            resizable: true,
-        });
-    }
+    static async formHandler(_event, _form, formData) {
+        const updateData = {
+            ...formData.object,
+            name: formData.object.name?.trim() ?? "",
+            description: formData.object.description ?? "",
+            "texture.src": formData.object["texture.src"]?.trim() ?? "",
+            owner: formData.object.owner ? [formData.object.owner].flat() : [],
+        };
 
-    async _updateObject(_event, updateData) {
         if (!updateData?.name || !updateData["texture.src"]) {
             ui.notifications.warn("Name and image fields are missing");
             return
@@ -73,8 +88,6 @@ class AchievementForm extends FormApplication {
 
             await this.actor.setFlag(moduleName, "achievements", data)
         }
-
-        this.close()
     }
 }
 

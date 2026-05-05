@@ -365,12 +365,6 @@ Hooks.on('renderAbstractSidebarTab', function (tab, html) {
         }
 
         if (!header.querySelector('.create-combat')) {
-            let tokens = party.members
-                .filter(a => !a?.isOfType("familiar"))
-                .filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug))
-                .map(m => m.getActiveTokens(true, true)).flat();
-
-
             const newBtn = foundry.utils.parseHTML(`<button type="button" class="create-combat left-control inline-control icon fas fa-swords" data-tooltip="Create Combat"></button>`);
             const span = header.querySelector('span');
             if (span?.parentNode) {
@@ -378,6 +372,12 @@ Hooks.on('renderAbstractSidebarTab', function (tab, html) {
             }
             newBtn.addEventListener("click", async function (event) {
                 event.stopPropagation();
+
+                let tokens = party.members
+                    .filter(a => !a?.isOfType("familiar"))
+                    .filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug))
+                    .map(m => m.getActiveTokens(true, true)).flat()
+                    .filter(a=>!!a);
 
                 if (game.combat) {
                     let included = game.combat.turns.map(a => a.token.id)
@@ -422,24 +422,25 @@ Hooks.on('renderAbstractSidebarTab', function (tab, html) {
                     return
                 }
 
-                const {formula} = await Dialog.wait({
-                    title: "Apply damage/heal",
+                const result = await foundry.applications.api.DialogV2.wait({
+                    window: {title: "Apply damage/heal"},
                     content: `<input type="text" name="name" /><br/><p>Positive value for Heal, negative for Damage</p>`,
-                    buttons: {
-                        ok: {
-                            label: "Apply",
-                            icon: "<i class='fas fa-plus'></i>",
-                            callback: (html) => {
-                                return {formula: html.find('input').val()}
-                            }
-                        },
-                        cancel: {
-                            label: "Cancel",
-                            icon: "<i class='fa-solid fa-ban'></i>",
+                    rejectClose: false,
+                    buttons: [{
+                        action: "ok",
+                        label: "Apply",
+                        icon: "fas fa-plus",
+                        default: true,
+                        callback: (_event, button) => {
+                            return {formula: button.form.elements.name.value};
                         }
-                    },
-                    default: "cancel"
+                    }, {
+                        action: "cancel",
+                        label: "Cancel",
+                        icon: "fa-solid fa-ban",
+                    }]
                 });
+                const formula = result?.formula;
                 if (!formula) {
                     return
                 }
@@ -479,27 +480,28 @@ async function handleSkillRoll(event, partySheet) {
 
     const isSecret = (event.ctrlKey || event.metaKey);
 
-    const {dc} = await Dialog.wait({
-        title: "DC of skill",
+    const result = await foundry.applications.api.DialogV2.wait({
+        window: {title: "DC of skill"},
         content: `
             <h3>DC of check</h3>
             <input id="skill-dc" type="number" min="0" value=${defDC} />
         `,
-        buttons: {
-            ok: {
-                label: "Create DC Template",
-                icon: "<i class='fa-solid fa-magic'></i>",
-                callback: (html) => {
-                    return {dc: parseInt(html[0].querySelector("#skill-dc").value)}
-                }
-            },
-            cancel: {
-                label: "Cancel",
-                icon: "<i class='fa-solid fa-ban'></i>",
+        rejectClose: false,
+        buttons: [{
+            action: "ok",
+            label: "Create DC Template",
+            icon: "fa-solid fa-magic",
+            default: true,
+            callback: (_event, button) => {
+                return {dc: parseInt(button.form.elements["skill-dc"].value)};
             }
-        },
-        default: "ok"
+        }, {
+            action: "cancel",
+            label: "Cancel",
+            icon: "fa-solid fa-ban",
+        }]
     });
+    const dc = result?.dc;
     if (dc === undefined) {
         return;
     }
@@ -537,27 +539,28 @@ async function handleSaveRoll(event, partySheet) {
     const isSecret = (event.ctrlKey || event.metaKey);
 
 
-    const {dc} = await Dialog.wait({
-        title: "DC of skill",
+    const result = await foundry.applications.api.DialogV2.wait({
+        window: {title: "DC of skill"},
         content: `
             <h3>DC of check</h3>
             <input id="skill-dc" type="number" min="0" value=${defDC} />
         `,
-        buttons: {
-            ok: {
-                label: "Create DC Template",
-                icon: "<i class='fa-solid fa-magic'></i>",
-                callback: (html) => {
-                    return {dc: parseInt(html[0].querySelector("#skill-dc").value)}
-                }
-            },
-            cancel: {
-                label: "Cancel",
-                icon: "<i class='fa-solid fa-ban'></i>",
+        rejectClose: false,
+        buttons: [{
+            action: "ok",
+            label: "Create DC Template",
+            icon: "fa-solid fa-magic",
+            default: true,
+            callback: (_event, button) => {
+                return {dc: parseInt(button.form.elements["skill-dc"].value)};
             }
-        },
-        default: "ok"
+        }, {
+            action: "cancel",
+            label: "Cancel",
+            icon: "fa-solid fa-ban",
+        }]
     });
+    const dc = result?.dc;
     if (dc === undefined) {
         return;
     }
@@ -719,7 +722,7 @@ Hooks.on('renderPartySheetPF2e', function (partySheet, html) {
         const members = party.members.filter(a => !a?.isOfType("familiar")).filter(a => !["eidolon", 'animal-companion'].includes(a.class?.slug))
 
         if (members.length > 0) {
-            let speed = Math.min(...members.map(m => m.attributes.speed.total));
+            let speed = Math.min(...members.map(m => m?.movement?.speeds?.travel?.value)) || 0;
 
 
             let options = game.settings.get(moduleName, "defaultCalculatorValue")
@@ -958,11 +961,34 @@ function hasPermissions(item) {
     return 3 === item?.ownership[game.user.id] || game.user.isGM;
 }
 
-class MoveLootPopup extends FormApplication {
+class MoveLootPopup extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
     #resolve = null;
+    #submitted = false;
+
+    static DEFAULT_OPTIONS = {
+        tag: "form",
+        id: 'MoveLootPopup',
+        classes: [],
+        window: {title: "PF2E.loot.MoveLootPopupTitle"},
+        position: {width: 320},
+        actions: {},
+        form: {
+            handler: this.formHandler,
+            closeOnSubmit: true,
+            submitOnChange: false,
+        },
+    };
+
+    static PARTS = {
+        main: {
+            template: `modules/${moduleName}/templates/move-loot.hbs`,
+            root: true,
+        },
+    };
 
     constructor(object, options) {
-        super(object, options)
+        super(options)
+        this.object = object;
     }
 
     async resolve() {
@@ -979,50 +1005,32 @@ class MoveLootPopup extends FormApplication {
         });
     }
 
-    async getData() {
-        const [prompt, buttonLabel] = ['PF2E.loot.MoveLootMessage', 'PF2E.loot.MoveLoot']
+    async _prepareContext() {
         return {
-            ...(await super.getData()),
             quantity: {
                 default: this.object.quantity,
                 max: this.object.quantity,
             },
             newStack: false,
             lockStack: false,
-            prompt,
-            buttonLabel,
         }
     }
 
-    static get defaultOptions() {
-        return {
-            ...super.defaultOptions,
-            id: 'MoveLootPopup',
-            classes: [],
-            title: game.i18n.localize('PF2E.loot.MoveLootPopupTitle'),
-            template: `modules/${moduleName}/templates/move-loot.hbs`,
-            width: 'auto',
-            quantity: {
-                default: 1,
-                max: 1,
-            },
-            newStack: false,
-            lockStack: false,
-            isPurchase: false,
-        }
-    }
-
-    async _updateObject(_event, formData) {
+    static async formHandler(_event, _form, formData) {
+        this.#submitted = true;
         this.#resolve?.({
-            quantity: formData.quantity ?? 1,
-            newStack: formData.newStack,
+            quantity: Number(formData.object.quantity ?? 1),
+            newStack: Boolean(formData.object.newStack),
         });
-        this.resolve = null;
+        this.#resolve = null;
     }
 
-    async close(options) {
-        this.#resolve?.(null);
-        return super.close(options);
+    async _onClose(options) {
+        if (!this.#submitted) {
+            this.#resolve?.(null);
+            this.#resolve = null;
+        }
+        return super._onClose(options);
     }
 }
 

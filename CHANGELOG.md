@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.4.0
+- V14
+
 ## Version 0.3.10
 - Fix issue with achievements tab
 
