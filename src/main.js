@@ -138,7 +138,7 @@ function pickHex(color1, color2, weight) {
 }
 
 function healthEstimateForActor(actor, html, statuses) {
-    const percent = game.settings.get("pf2e", "staminaVariant")
+    const percent = game.settings.get(game.system.id, "staminaVariant")
         ? ((actor.system.attributes.hp.value + (actor.system.attributes.hp.sp?.value ?? 0)) / (actor.system.attributes.hp.max + (actor.system.attributes.hp.sp?.max ?? 0))) * 100
         : (actor.system.attributes.hp.value / actor.system.attributes.hp.max) * 100;
     let color = calculateColor(percent);
@@ -164,7 +164,7 @@ function healthEstimateForActor(actor, html, statuses) {
         expHpBar.attr("data-tooltip", label)
     }
 
-    if (game.settings.get("pf2e", "staminaVariant")) {
+    if (game.settings.get(game.system.id, "staminaVariant")) {
 
         const expSpBar = html.find(`div[data-tab="exploration"]`).find(`.content[data-actor-uuid="${actor.uuid}"]`).parent().find('.stamina-bar');
         const overSpBar = html.find(`div[data-tab="overview"]`).find(`.member[data-actor-uuid="${actor.uuid}"]`).find('.stamina-bar');
@@ -580,7 +580,7 @@ async function handleSaveRoll(event, partySheet) {
 }
 
 function addStamina(partySheet, html) {
-    if (!game.settings.get("pf2e", "staminaVariant")) {
+    if (!game.settings.get(game.system.id, "staminaVariant")) {
         return
     }
 

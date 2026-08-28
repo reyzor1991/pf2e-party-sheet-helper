@@ -28,7 +28,7 @@ Hooks.on('renderPartySheetPF2e', function(partySheet, html) {
     let points = '';
     for (let i = 0; i < partyHP.max; i++) {
         if (partyHP.value > i) {
-            points += '<img src="systems/pf2e/dice/basic/heads.webp" />'
+            points += `<img src="systems/${game.system.id}/dice/basic/heads.webp" />`
         } else {
             points += '<span class="empty"></span>'
         }

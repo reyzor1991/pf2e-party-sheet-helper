@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.4.1
+- Sf2e support
+
 ## Version 0.4.0
 - V14
 

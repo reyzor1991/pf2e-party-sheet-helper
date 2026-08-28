@@ -2,7 +2,7 @@
   "id": "pf2e-party-sheet-helper",
   "title": "PF2e Party Sheet Helper",
   "description": "PF2e Party Sheet Helper",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "authors": [
     {
       "name": "Reyzor",
@@ -43,7 +43,7 @@
     "maximum": "14.999"
   },
   "manifest": "https://raw.githubusercontent.com/reyzor1991/pf2e-party-sheet-helper/refs/heads/master/module.json",
-  "download": "https://github.com/reyzor1991/pf2e-party-sheet-helper/releases/download/0.4.0/pf2e-party-sheet-helper.zip",
+  "download": "https://github.com/reyzor1991/pf2e-party-sheet-helper/releases/download/0.4.1/pf2e-party-sheet-helper.zip",
   "url": "https://github.com/reyzor1991/pf2e-party-sheet-helper",
   "readme": "https://github.com/reyzor1991/pf2e-party-sheet-helper/blob/master/README.md",
   "bugs": "https://github.com/reyzor1991/pf2e-party-sheet-helper/issues",
@@ -58,6 +58,11 @@
           "minimum": "8.0.2",
           "verified": "8.0.2"
         }
+      },
+      {
+        "id": "sf2e",
+        "type": "system",
+        "compatibility": {}
       }
     ],
     "requires": []

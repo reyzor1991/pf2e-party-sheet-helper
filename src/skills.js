@@ -57,22 +57,22 @@ Hooks.on("createChatMessage", async (message) => {
     if (!game.settings.get(moduleName, "skills") && !isGM()) {
         return
     }
-    if (message.flags?.pf2e?.context?.domains?.includes('initiative')) {
+    if (message.flags?.[game.system.id]?.context?.domains?.includes('initiative')) {
         return
     }
     if (
-        !message.flags?.pf2e?.context?.domains?.includes('deception-check')
-        && !message.flags?.pf2e?.context?.domains?.includes('perception-check')
-        && !message.flags?.pf2e?.context?.domains?.includes('stealth-check')
+        !message.flags?.[game.system.id]?.context?.domains?.includes('deception-check')
+        && !message.flags?.[game.system.id]?.context?.domains?.includes('perception-check')
+        && !message.flags?.[game.system.id]?.context?.domains?.includes('stealth-check')
     ) {
         return
     }
 
     let value = Number.isNumeric(message.content) ? Number(message.content) : 0;
 
-    let label = message.flags.pf2e.modifierName
+    let label = message.flags?.[game.system.id].modifierName
 
-    let proficiency = message.flags.pf2e.context.options.find(o => o.startsWith("proficiency:"))?.split(":")?.[1]
+    let proficiency = message.flags?.[game.system.id].context.options.find(o => o.startsWith("proficiency:"))?.split(":")?.[1]
 
     game.actors.filter(a => a.isOfType('party')).filter(p => p.members.find(m => m === message.actor))
         .forEach((element, index) => {
@@ -80,7 +80,7 @@ Hooks.on("createChatMessage", async (message) => {
                 moduleName,
                 'skills',
                 {
-                    [`${message.actor.id}-${message.flags.pf2e.modifierName}`]: {
+                    [`${message.actor.id}-${message.flags?.[game.system.id].modifierName}`]: {
                         'name': message.actor.name,
                         label,
                         value,

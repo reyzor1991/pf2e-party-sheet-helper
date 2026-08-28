@@ -492,13 +492,13 @@ Hooks.on("preCreateChatMessage", async (message) => {
         return
     }
 
-    if (message?.flags?.pf2e?.context?.type !== "skill-check") {
+    if (message?.flags?.[game.system.id]?.context?.type !== "skill-check") {
         return
     }
-    if (!message?.flags?.pf2e?.context?.options) {
+    if (!message?.flags?.[game.system.id]?.context?.options) {
         return
     }
-    let filtered = message?.flags?.pf2e?.context?.options.filter((opt) => opt.match(SUBSYSTEM_ACTION_REGEXP));
+    let filtered = message?.flags?.[game.system.id]?.context?.options.filter((opt) => opt.match(SUBSYSTEM_ACTION_REGEXP));
     if (filtered.length === 0) {
         return
     }
@@ -509,16 +509,16 @@ Hooks.on("preCreateChatMessage", async (message) => {
     if (!message.actor.parties.first()) {
         return
     }
-    let name = message?.flags?.pf2e?.context?.options.find(a => a.startsWith('npc-name'))
+    let name = message?.flags?.[game.system.id]?.context?.options.find(a => a.startsWith('npc-name'))
     if (!name) {
         return
     }
     name = name.substring(9).trim();
-    let outcome = message?.flags?.pf2e?.context?.outcome
+    let outcome = message?.flags?.[game.system.id]?.context?.outcome
     let outcomeValue = (POINT_MAP[outcome] ?? 0);
 
     if (message.isReroll) {
-        let unadjustedOutcomeValue = (POINT_MAP[message?.flags?.pf2e?.context?.unadjustedOutcome] ?? 0);
+        let unadjustedOutcomeValue = (POINT_MAP[message?.flags?.[game.system.id]?.context?.unadjustedOutcome] ?? 0);
         outcomeValue = outcomeValue + (-unadjustedOutcomeValue)
     }
 
